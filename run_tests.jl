@@ -5,7 +5,8 @@
 require("Calculus")
 using Calculus
 
-my_tests = ["test/estimate_gradient.jl"]
+my_tests = ["test/finite_difference.jl",
+            "test/derivative.jl"]
 
 println("Running tests:")
 
