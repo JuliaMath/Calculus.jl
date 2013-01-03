@@ -82,9 +82,23 @@ There are two basic approaches to using the Calculus package:
 	h2([1.0, 1.0])
 	h2([pi, pi])
 
+## Prime Notation
+
+For scalar functions that map R to R, you can use the `'` operator to calculate
+derivatives as well. This operator can be used abritratily many times, but you
+should keep in mind that the approximation degrades with each approximate
+derivative you calculate:
+
+	require("Calculus")
+	using Calculus
+
+	f(x) = sin(x)
+	f'(1.0) - cos(1.0)
+	f''(1.0) - (-sin(1.0))
+	f'''(1.0) - (-cos(1.0))
+
 # Coming Soon
 
-* `jacobian()`
 * `check_derivative()`
 * Finite differencing based on complex numbers
 

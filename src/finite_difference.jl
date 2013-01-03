@@ -102,6 +102,46 @@ end
 
 ##############################################################################
 ##
+## Jacobian derivative of f: R^n -> R^m
+##
+##############################################################################
+
+function finite_difference_jacobian{T <: Number}(f::Function, x::Vector{T}, dtype::Symbol)
+    epsilon = 2 * sqrt(1e-12) * (1 + norm(x))
+
+    # What is the dimension of x?
+    n = length(x)
+
+    # Establish a baseline for f_x
+    f_x = f(x)
+
+    # Initialize the Jacobian matrix
+    J = zeros(length(f_x), n)
+
+    # Iterate over each dimension of the gradient separately.
+    if dtype == :forward
+        xplusdx = copy(x)
+        for i = 1:n
+            xplusdx[i] = x[i] + epsilon
+            J[:, i] = (f(xplusdx) - f_x) / epsilon
+            xplusdx[i] = x[i]
+        end
+        return J
+    elseif dtype == :central
+        xplusdx, xminusdx = copy(x), copy(x)
+        for i = 1:n
+            xplusdx[i], xminusdx[i] = x[i] + epsilon, x[i] - epsilon
+            J[:, i] = (f(xplusdx) - f(xminusdx)) / (2 * epsilon)
+            xplusdx[i], xminusdx[i] = x[i], x[i]
+        end
+        return J
+    else
+        error("dtype must :forward or :central")
+    end
+end
+
+##############################################################################
+##
 ## Second derivative of f: R^n -> R
 ##
 ##############################################################################
