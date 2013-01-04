@@ -6,7 +6,8 @@ require("Calculus")
 using Calculus
 
 my_tests = ["test/finite_difference.jl",
-            "test/derivative.jl"]
+            "test/derivative.jl",
+            "test/check_derivative.jl"]
 
 println("Running tests:")
 

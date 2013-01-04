@@ -256,3 +256,18 @@ end
 ## TODO: Implement directional_derivative()
 ##
 ##############################################################################
+
+# The function "dirderivative" calculates directional derivatives in the direction v.
+# The function supplied must have the form Vector{Float64} -> Float64
+# function dirderivative(f::Function, v::Vector{Float64}, x0::Vector{Float64}, h::Float64, twoside::Bool) 
+#     derivative(t::Float64 -> f(x0 + v*t) / norm(v), 0.0, h, twoside)
+# end
+# function dirderivative(f::Function, v::Vector{Float64}, x0::Vector{Float64}, h::Float64)
+#     dirderivative(f, v, x0, h, true)
+# end
+# function dirderivative(f::Function, v::Vector{Float64}, x0::Vector{Float64}, )
+#     derivative(f, v, x0, 0.0001)
+# end
+# function dirderivative(f::Function, v::Vector{Float64})
+#     x -> dirderivative(f, v, x)
+# end
