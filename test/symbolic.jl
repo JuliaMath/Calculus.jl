@@ -1,0 +1,25 @@
+deriv(:(2), :x)
+deriv(:(x), :x)
+deriv(:(2 * x), :x)
+deriv(:(x ^ 2), :x)
+# deriv(:(a * x ^ 2), :x) # TODO: Make this work
+# deriv(:(2 ^ x), :x) # TODO: Make this work
+deriv(:(sin(x)), :x)
+deriv(:(cos(x)), :x)
+deriv(:(tan(x)), :x)
+deriv(:(exp(x)), :x)
+deriv(:(log(x)), :x)
+deriv(:(sin(x) + sin(x)), :x)
+deriv(:(sin(x) + sin(x)), :x)
+deriv(:(sin(x) - cos(x)), :x)
+deriv(:(x * sin(x)), :x)
+deriv(:(x / sin(x)), :x)
+deriv(:(sin(sin(x))), :x)
+deriv(:(sin(cos(x) + sin(x))), :x)
+deriv(:(exp(-x)), :x)
+deriv(:(log(x^2)), :x)
+
+# TODO: Make these work
+# derivative(:(sin(x)), :x)(0.0)
+# derivative(:(sin(x)), :x)(1.0)
+# derivative(:(sin(x)), :x)(pi)

@@ -5,6 +5,7 @@ module Calculus
            check_hessian,
            check_second_derivative,
            derivative,
+           deriv,
            gradient,
            hessian,
            integrate,
@@ -57,4 +58,5 @@ module Calculus
     include(file_path(julia_pkgdir(), "Calculus", "src", "derivative.jl"))
     include(file_path(julia_pkgdir(), "Calculus", "src", "check_derivative.jl"))
     include(file_path(julia_pkgdir(), "Calculus", "src", "integrate.jl"))
+    include(file_path(julia_pkgdir(), "Calculus", "src", "symbolic.jl"))
 end
