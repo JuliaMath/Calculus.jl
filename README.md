@@ -16,13 +16,15 @@ Most users will want to work with four functions:
 * `second_derivative()`: Use this for functions from R to R
 * `gradient()`: Use this for functions from R^n to R
 * `hessian()`: Use this for functions from R^n to R
+* `integrate()`: Use this to integrate functions from R to R
 
 # Usage Examples
 
-There are two basic approaches to using the Calculus package:
+There are a few basic approaches to using the Calculus package:
 
 * Use finite-differencing to evaluate the derivative at a specific point
 * Use higher-order functions to create new functions that evaluate derivatives
+* Use Simpson's rule to evaluate definite integrals
 
 ## Direct Finite Differencing
 
@@ -97,9 +99,19 @@ derivative you calculate:
 	f''(1.0) - (-sin(1.0))
 	f'''(1.0) - (-cos(1.0))
 
+## Integration using Simpson's Rule
+
+	require("Calculus")
+	using Calculus
+
+	# Compare with log(2)
+	integrate(x -> 1 / x, 1.0, 2.0)
+
+	# Compare with cos(pi) - cos(0)
+	integrate(x -> -sin(x), 0.0, pi)
+
 # Coming Soon
 
-* `check_derivative()`
 * Finite differencing based on complex numbers
 
 # Credits
@@ -111,6 +123,7 @@ Calculus.jl is built on contributions from:
 * Andreas Noack Jensen
 * Nathaniel Daw
 * Blake Johnson
+* Avik Sengupta
 
 And draws inspiration and ideas from minFunc by:
 

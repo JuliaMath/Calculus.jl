@@ -7,6 +7,7 @@ module Calculus
            derivative,
            gradient,
            hessian,
+           integrate,
            jacobian,
            second_derivative
 
@@ -55,4 +56,5 @@ module Calculus
     include(file_path(julia_pkgdir(), "Calculus", "src", "finite_difference.jl"))
     include(file_path(julia_pkgdir(), "Calculus", "src", "derivative.jl"))
     include(file_path(julia_pkgdir(), "Calculus", "src", "check_derivative.jl"))
+    include(file_path(julia_pkgdir(), "Calculus", "src", "integrate.jl"))
 end

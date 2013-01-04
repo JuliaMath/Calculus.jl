@@ -7,7 +7,8 @@ using Calculus
 
 my_tests = ["test/finite_difference.jl",
             "test/derivative.jl",
-            "test/check_derivative.jl"]
+            "test/check_derivative.jl",
+            "test/integrate.jl"]
 
 println("Running tests:")
 
