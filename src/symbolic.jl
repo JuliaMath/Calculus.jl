@@ -84,12 +84,12 @@ end
 
 # The Constant Rule
 # d/dx c = 0
-deriv(x::Number, target::Symbol) = 0
+differentiate(x::Number, target::Symbol) = 0
 
 # The Symbol Rule
 # d/dx x = 1
 # d/dx y = y
-function deriv(s::Symbol, target::Symbol)
+function differentiate(s::Symbol, target::Symbol)
     if s == target
         return 1
     else
@@ -105,14 +105,14 @@ function sum_rule(ex::Expr, target::Symbol)
         error("Not a valid sum call: $(ex)")
     end
     if length(ex.args) == 2
-        return simplify(deriv(ex.args[2], target))
+        return simplify(differentiate(ex.args[2], target))
     else
+        new_args = {:+}
+        for i in 2:length(ex.args)
+            push(new_args, simplify(differentiate(ex.args[i], target)))
+        end
         return simplify(Expr(:call,
-                             {
-                                 :+,
-                                 simplify(deriv(ex.args[2], target)),
-                                 simplify(deriv(ex.args[3], target))
-                             },
+                             new_args,
                              Any))
     end
 end
@@ -128,15 +128,15 @@ function subtraction_rule(ex::Expr, target::Symbol)
         return simplify(Expr(:call,
                              {
                                  :-,
-                                 simplify(deriv(ex.args[2], target))
+                                 simplify(differentiate(ex.args[2], target))
                              },
                              Any))
     else
         return simplify(Expr(:call,
                              {
                                  :-,
-                                 simplify(deriv(ex.args[2], target)),
-                                 simplify(deriv(ex.args[3], target))
+                                 simplify(differentiate(ex.args[2], target)),
+                                 simplify(differentiate(ex.args[3], target))
                              },
                              Any))
     end
@@ -154,7 +154,7 @@ function product_rule(ex::Expr, target::Symbol)
                              simplify(Expr(:call,
                                            {
                                               :*,
-                                              simplify(deriv(ex.args[2], target)),
+                                              simplify(differentiate(ex.args[2], target)),
                                               ex.args[3]
                                            },
                                            Any)),
@@ -162,7 +162,7 @@ function product_rule(ex::Expr, target::Symbol)
                                            {
                                              :*,
                                              ex.args[2],
-                                             simplify(deriv(ex.args[3], target))
+                                             simplify(differentiate(ex.args[3], target))
                                            },
                                            Any))
                          },
@@ -184,7 +184,7 @@ function quotient_rule(ex::Expr, target::Symbol)
                                               simplify(Expr(:call,
                                                             {
                                                                :*,
-                                                               simplify(deriv(ex.args[2], target)),
+                                                               simplify(differentiate(ex.args[2], target)),
                                                                ex.args[3]
                                                             },
                                                             Any)),
@@ -192,7 +192,7 @@ function quotient_rule(ex::Expr, target::Symbol)
                                                             {
                                                                :*,
                                                                ex.args[2],
-                                                               simplify(deriv(ex.args[3], target))
+                                                               simplify(differentiate(ex.args[3], target))
                                                             },
                                                             Any))
                                            },
@@ -252,7 +252,7 @@ function sin_rule(ex::Expr, target::Symbol)
                                      ex.args[2]
                                   },
                                   Any),
-                             simplify(deriv(ex.args[2], target))
+                             simplify(differentiate(ex.args[2], target))
                          },
                          Any))
 end
@@ -277,7 +277,7 @@ function cos_rule(ex::Expr, target::Symbol)
                                                    Any)
                                            },
                                            Any)),
-                             simplify(deriv(ex.args[2], target))
+                             simplify(differentiate(ex.args[2], target))
                          },
                          Any))
 end
@@ -309,7 +309,7 @@ function tan_rule(ex::Expr, target::Symbol)
                                           Any)
                                   },
                                   Any),
-                             deriv(ex.args[2], target)
+                             differentiate(ex.args[2], target)
                          },
                          Any))
 end
@@ -329,7 +329,7 @@ function exp_rule(ex::Expr, target::Symbol)
                                      ex.args[2]
                                   },
                                   Any),
-                             deriv(ex.args[2], target)
+                             simplify(differentiate(ex.args[2], target))
                          },
                          Any))
 end
@@ -350,7 +350,7 @@ function log_rule(ex::Expr, target::Symbol)
                                      ex.args[2]
                                   },
                                   Any),
-                             deriv(ex.args[2], target)
+                             simplify(differentiate(ex.args[2], target))
                          },
                          Any))
 end
@@ -367,7 +367,7 @@ lookup = {:+ => sum_rule,
           :exp => exp_rule,
           :log => log_rule}
 
-function deriv(ex::Expr, target::Symbol)
+function differentiate(ex::Expr, target::Symbol)
     if ex.head == :call
         if has(lookup, ex.args[1])
             return lookup[ex.args[1]](ex, target)
@@ -375,25 +375,26 @@ function deriv(ex::Expr, target::Symbol)
             error("Unknown function called in AST: $(ex.args[1])")
         end
     else
-        return deriv(ex.head)
+        return simplify(differentiate(ex.head))
     end
 end
-deriv(ex::Expr) = deriv(ex, :x)
+differentiate(ex::Expr) = differentiate(ex, :x)
 
-deriv(s::String, target::Symbol) = deriv(parse(s)[1], target)
-deriv(s::String, target::String) = deriv(parse(s)[1], symbol(target))
-deriv(s::String) = deriv(parse(s)[1], :x)
+differentiate(s::String, target::Symbol) = differentiate(parse(s)[1], target)
+differentiate(s::String, target::String) = differentiate(parse(s)[1], symbol(target))
+differentiate(s::String) = differentiate(parse(s)[1], :x)
 
-# begin x = 1; eval(deriv(:(sin(x)), :x)) end
+# begin x = 1; eval(differentiate(:(sin(x)), :x)) end
+# Full out differentation
 function derivative(ex::Expr, target::Symbol)
     function f(x)
-        d_ex = deriv(ex, target)
+        d_ex = differentiate(ex, target)
         return eval(d_ex)
     end
     return f
 end
 
 function derivative(ex::Expr, target::Symbol, x::Any)
-    d_ex = deriv(ex, target)
+    d_ex = differentiate(ex, target)
     return eval(d_ex)
 end

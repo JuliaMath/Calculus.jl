@@ -5,7 +5,7 @@ function derivative(f::Function, ftype::Symbol, dtype::Symbol)
     g(x::Vector) = finite_difference(f, x, dtype)
   else
     error("ftype must :scalar or :vector")
-  end  
+  end
   return g
 end
 derivative{T <: Number}(f::Function, x::Union(T, Vector{T}), dtype::Symbol) = finite_difference(f, x, dtype)

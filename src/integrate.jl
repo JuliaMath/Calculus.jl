@@ -1,4 +1,6 @@
-function adaptiveSimpsons(f::Function,  a,  b,  epsilon, S,  fa,  fb,  fc, bottom)
+function adaptive_simpsons_inner(f::Function, a::Real, b::Real,
+                                 epsilon::Real, S::Real,
+                                 fa::Real, fb::Real, fc::Real, bottom::Int)
     c = (a + b) / 2
     h = b - a
     d = (a + c) / 2
@@ -11,17 +13,38 @@ function adaptiveSimpsons(f::Function,  a,  b,  epsilon, S,  fa,  fb,  fc, botto
     if bottom <= 0 || abs(S2 - S) <= 15 * epsilon
         return S2 + (S2 - S) / 15
     end
-    return adaptiveSimpsons(f, a, c, epsilon / 2, Sleft,  fa, fc, fd, bottom - 1) +
-           adaptiveSimpsons(f, c, b, epsilon / 2, Sright, fc, fb, fe, bottom - 1)
+    return adaptive_simpsons_inner(f, a, c, epsilon / 2, Sleft,  fa, fc, fd, bottom - 1) +
+           adaptive_simpsons_inner(f, c, b, epsilon / 2, Sright, fc, fb, fe, bottom - 1)
 end
 
-function integrate(f::Function, a::Real, b::Real, accuracy::Real, max_iterations::Int)
+function adaptive_simpsons_outer(f::Function, a::Real, b::Real, accuracy::Real, max_iterations::Int)
     c = (a + b) / 2
     h = b - a
     fa = f(a)
     fb = f(b)
     fc = f(c)
     S = (h / 6) * (fa + 4 * fc + fb)
-  return adaptiveSimpsons(f, a, b, accuracy, S, fa, fb, fc, max_iterations)
+  return adaptive_simpsons_inner(f, a, b, accuracy, S, fa, fb, fc, max_iterations)
 end
-integrate(f::Function, a::Real, b::Real) = integrate(f, a, b, 1e-9, 50)
+adaptive_simpsons_outer(f::Function, a::Real, b::Real) = adaptive_simpsons_outer(f, a, b, 10e-10, 50)
+
+function monte_carlo(f::Function, a::Real, b::Real, iterations::Int)
+    estimate = 0.0
+    width = (b - a)
+    for i in 1:iterations
+        x = width * rand() + a
+        estimate += f(x) * width
+    end
+    return estimate / iterations
+end
+
+function integrate(f::Function, a::Real, b::Real, method::Symbol)
+    if method == :simpsons
+        adaptive_simpsons_outer(f, a, b)
+    elseif method == :monte_carlo
+        monte_carlo(f, a, b, 10_000)
+    else
+        error("Unknown method of integration: $(method)")
+    end
+end
+integrate(f::Function, a::Real, b::Real) = integrate(f, a, b, :simpsons)
