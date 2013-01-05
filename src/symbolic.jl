@@ -1,9 +1,90 @@
 # TODO: Add explicit simplification function that runs until fixed point
-# TODO: Impose minimal simplifications
-#        (1) +(0, x) == +(x , 0) == x
-#        (2) *(0, x) == *(x , 0) == 0
-#        (3) *(1, x) == *(x, 1) == x
 # TODO: Pretty printing of resulting expressions via deparse()
+
+# Impose minimal simplification
+#  (1) +(0, x) == +(x , 0) == x
+#  (2) *(0, x) == *(x , 0) == 0
+#  (3) *(1, x) == *(x, 1) == x
+# simplify(n * n) = Numerical Value of n * n
+# simplify(x - x) = 0 for all x
+
+simplify(n::Number) = n
+simplify(s::Symbol) = s
+function simplify(ex::Expr)
+    if ex.head == :call
+        if contains([:+, :-, :*, :/, :^], ex.args[1]) && all(map(a -> isa(a, Number), ex.args[2:end]))
+            return eval(ex)
+        end
+        if ex.args[1] == :+
+            if length(ex.args) == 2
+                return ex.args[2]
+            else
+                if ex.args[2] == 0
+                    return ex.args[3]
+                elseif ex.args[3] == 0
+                    return ex.args[2]
+                else
+                    return ex # Should we call simplify() here?
+                end
+            end
+        elseif ex.args[1] == :-
+            if length(ex.args) == 2
+                return ex
+            else
+                if ex.args[2] == 0
+                    return ex
+                elseif ex.args[3] == 0
+                    return ex.args[2]
+                elseif ex.args[2] == ex.args[3]
+                    return 0
+                else
+                    return ex # Should we call simplify() here?
+                end
+            end
+        elseif ex.args[1] == :*
+            if ex.args[2] == 0 || ex.args[3] == 0
+                return 0
+            elseif ex.args[2] == 1
+                return ex.args[3]
+            elseif ex.args[3] == 1
+                return ex.args[2]
+            else
+                return ex # Should we call simplify() here?
+            end
+        elseif ex.args[1] == :/
+            if ex.args[3] == 0
+                return ex # Is x / 0, which could be Inf or NaN depending on x
+            elseif ex.args[3] == 1
+                return ex.args[2]
+            elseif ex.args[2] == 0
+                return 0
+            else
+                return ex # Should we call simplify() here?
+            end
+        elseif ex.args[1] == :^
+            if ex.args[3] == 0
+                return 1
+            elseif ex.args[3] == 1
+                return ex.args[2]
+            elseif ex.args[2] == 0
+                return 0
+            elseif ex.args[2] == 1
+                return 1
+            else
+                return ex
+            end
+        # Log tricks here?
+        else
+            return ex
+        end
+    else
+        return ex
+    end
+end
+
+# The Constant Rule
+# d/dx c = 0
+deriv(x::Number, target::Symbol) = 0
 
 # The Symbol Rule
 # d/dx x = 1
@@ -12,13 +93,9 @@ function deriv(s::Symbol, target::Symbol)
     if s == target
         return 1
     else
-        return s
+        return 0 # Used to be s
     end
 end
-
-# The Constant Rule
-# d/dx c = 0
-deriv(x::Number, target::Symbol) = 0
 
 # The Sum Rule for Unary and Binary +
 # d/dx +(f) = +(d/dx f)
@@ -28,15 +105,15 @@ function sum_rule(ex::Expr, target::Symbol)
         error("Not a valid sum call: $(ex)")
     end
     if length(ex.args) == 2
-        return deriv(ex.args[2], target)
+        return simplify(deriv(ex.args[2], target))
     else
-        return Expr(:call,
-                    {
-                        :+,
-                        deriv(ex.args[2], target),
-                        deriv(ex.args[3], target)
-                    },
-                    Any)
+        return simplify(Expr(:call,
+                             {
+                                 :+,
+                                 simplify(deriv(ex.args[2], target)),
+                                 simplify(deriv(ex.args[3], target))
+                             },
+                             Any))
     end
 end
 
@@ -48,61 +125,87 @@ function subtraction_rule(ex::Expr, target::Symbol)
         error("Not a valid subtraction call: $(ex)")
     end
     if length(ex.args) == 2
-        return Expr(:call,
-                    {
-                        :-,
-                        deriv(ex.args[2], target)
-                    },
-                    Any)
+        return simplify(Expr(:call,
+                             {
+                                 :-,
+                                 simplify(deriv(ex.args[2], target))
+                             },
+                             Any))
     else
-        return Expr(:call,
-                    {
-                        :-,
-                        deriv(ex.args[2], target),
-                        deriv(ex.args[3], target)
-                    },
-                    Any)
+        return simplify(Expr(:call,
+                             {
+                                 :-,
+                                 simplify(deriv(ex.args[2], target)),
+                                 simplify(deriv(ex.args[3], target))
+                             },
+                             Any))
     end
 end
 
-# The Product Rule: (f * g)' = f' * g + f * g'
+# The Product Rule
+# d/dx (f * g) = (d/dx f) * g + f * (d/dx g)
 function product_rule(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :*
         error("Not a valid product call: $(ex)")
     end
-    return Expr(:call,
-                {:+,
-                 Expr(:call,
-                      {:*, deriv(ex.args[2], target), ex.args[3]},
-                      Any),
-                 Expr(:call,
-                      {:*, ex.args[2], deriv(ex.args[3], target)},
-                       Any)},
-                Any)
+    return simplify(Expr(:call,
+                         {
+                             :+,
+                             simplify(Expr(:call,
+                                           {
+                                              :*,
+                                              simplify(deriv(ex.args[2], target)),
+                                              ex.args[3]
+                                           },
+                                           Any)),
+                             simplify(Expr(:call,
+                                           {
+                                             :*,
+                                             ex.args[2],
+                                             simplify(deriv(ex.args[3], target))
+                                           },
+                                           Any))
+                         },
+                         Any))
 end
 
-# The Quotient Rule: (f / g)' = (f' * g - f * g') / g^2
+# The Quotient Rule
+# d/dx (f / g) = ((d/dx f) * g - f * (d/dx g)) / g^2
 function quotient_rule(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :/
         error("Not a valid quotient call: $(ex)")
     end
-    return Expr(:call,
-                {:/,
-                 Expr(:call,
-                      {:-,
-                       Expr(:call,
-                            {:*, deriv(ex.args[2], target), ex.args[3]},
-                            Any),
-                       Expr(:call,
-                            {:*, ex.args[2], deriv(ex.args[3], target)},
-                            Any)},
-                       Any),
-                 Expr(:call,
-                      {:^,
-                       ex.args[3],
-                       2},
-                      Any)},
-                Any)
+    return simplify(Expr(:call,
+                         {
+                             :/,
+                             simplify(Expr(:call,
+                                           {
+                                              :-,
+                                              simplify(Expr(:call,
+                                                            {
+                                                               :*,
+                                                               simplify(deriv(ex.args[2], target)),
+                                                               ex.args[3]
+                                                            },
+                                                            Any)),
+                                              simplify(Expr(:call,
+                                                            {
+                                                               :*,
+                                                               ex.args[2],
+                                                               simplify(deriv(ex.args[3], target))
+                                                            },
+                                                            Any))
+                                           },
+                                           Any)),
+                             Expr(:call,
+                                  {
+                                     :^,
+                                     ex.args[3],
+                                     2
+                                  },
+                                  Any)
+                         },
+                         Any))
 end
 
 # The Power Rule:
@@ -113,25 +216,25 @@ function power_rule(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :^
         error("Not a valid power call: $(ex)")
     end
-    return Expr(:call,
-                {
-                    :*,
-                    ex.args[3],
-                    Expr(:call,
+    return simplify(Expr(:call,
                          {
-                            :^,
-                            ex.args[2],
-                            Expr(:call,
-                                 {
-                                     :-,
-                                     ex.args[3],
-                                     1
-                                 },
-                                 Any)
+                             :*,
+                             ex.args[3],
+                             simplify(Expr(:call,
+                                           {
+                                              :^,
+                                              ex.args[2],
+                                              simplify(Expr(:call,
+                                                            {
+                                                                :-,
+                                                                ex.args[3],
+                                                                1
+                                                            },
+                                                            Any))
+                                           },
+                                           Any))
                          },
-                         Any)
-                },
-                Any)
+                         Any))
 end
 
 # The Sin Rule:
@@ -140,18 +243,18 @@ function sin_rule(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :sin
         error("Not a valid sin call: $(ex)")
     end
-    return Expr(:call,
-                {
-                    :*,
-                    Expr(:call,
+    return simplify(Expr(:call,
                          {
-                            :cos,
-                            ex.args[2]
+                             :*,
+                             Expr(:call,
+                                  {
+                                     :cos,
+                                     ex.args[2]
+                                  },
+                                  Any),
+                             simplify(deriv(ex.args[2], target))
                          },
-                         Any),
-                    deriv(ex.args[2], target)
-                },
-                Any)
+                         Any))
 end
 
 # The Cos Rule:
@@ -160,23 +263,23 @@ function cos_rule(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :cos
         error("Not a valid cos call: $(ex)")
     end
-    return Expr(:call,
-                {
-                    :*,
-                    Expr(:call,
+    return simplify(Expr(:call,
                          {
-                            :-,
-                            Expr(:call,
-                                 {
-                                    :sin,
-                                    ex.args[2]
-                                 },
-                                 Any)
+                             :*,
+                             simplify(Expr(:call,
+                                           {
+                                              :-,
+                                              Expr(:call,
+                                                   {
+                                                      :sin,
+                                                      ex.args[2]
+                                                   },
+                                                   Any)
+                                           },
+                                           Any)),
+                             simplify(deriv(ex.args[2], target))
                          },
-                         Any),
-                    deriv(ex.args[2], target)
-                },
-                Any)
+                         Any))
 end
 
 # The Tan Rule:
@@ -185,30 +288,30 @@ function tan_rule(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :tan
         error("Not a valid tan call: $(ex)")
     end
-    return Expr(:call,
-                {
-                    :*,
-                    Expr(:call,
+    return simplify(Expr(:call,
                          {
-                            :+,
-                            1,
-                            Expr(:call,
-                                 {
-                                    :^,
-                                    Expr(:call,
-                                         {
-                                            :tan,
-                                            ex.args[2]
-                                         },
-                                         Any),
-                                    2
-                                 },
-                                 Any)
+                             :*,
+                             Expr(:call,
+                                  {
+                                     :+,
+                                     1,
+                                     Expr(:call,
+                                          {
+                                             :^,
+                                             Expr(:call,
+                                                  {
+                                                     :tan,
+                                                     ex.args[2]
+                                                  },
+                                                  Any),
+                                             2
+                                          },
+                                          Any)
+                                  },
+                                  Any),
+                             deriv(ex.args[2], target)
                          },
-                         Any),
-                    deriv(ex.args[2], target)
-                },
-                Any)
+                         Any))
 end
 
 # The Exp Rule:
@@ -217,18 +320,18 @@ function exp_rule(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :exp
         error("Not a valid exp call: $(ex)")
     end
-    return Expr(:call,
-                {
-                    :*,
-                    Expr(:call,
+    return simplify(Expr(:call,
                          {
-                            :exp,
-                            ex.args[2]
+                             :*,
+                             Expr(:call,
+                                  {
+                                     :exp,
+                                     ex.args[2]
+                                  },
+                                  Any),
+                             deriv(ex.args[2], target)
                          },
-                         Any),
-                    deriv(ex.args[2], target)
-                },
-                Any)
+                         Any))
 end
 
 # The Log Rule:
@@ -237,19 +340,19 @@ function log_rule(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :log
         error("Not a valid log call: $(ex)")
     end
-    return Expr(:call,
-                {
-                    :*,
-                    Expr(:call,
+    return simplify(Expr(:call,
                          {
-                            :/,
-                            1,
-                            ex.args[2]
+                             :*,
+                             Expr(:call,
+                                  {
+                                     :/,
+                                     1,
+                                     ex.args[2]
+                                  },
+                                  Any),
+                             deriv(ex.args[2], target)
                          },
-                         Any),
-                    deriv(ex.args[2], target)
-                },
-                Any)
+                         Any))
 end
 
 # Lookup Table of Rules
@@ -275,6 +378,11 @@ function deriv(ex::Expr, target::Symbol)
         return deriv(ex.head)
     end
 end
+deriv(ex::Expr) = deriv(ex, :x)
+
+deriv(s::String, target::Symbol) = deriv(parse(s)[1], target)
+deriv(s::String, target::String) = deriv(parse(s)[1], symbol(target))
+deriv(s::String) = deriv(parse(s)[1], :x)
 
 # begin x = 1; eval(deriv(:(sin(x)), :x)) end
 function derivative(ex::Expr, target::Symbol)
