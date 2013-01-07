@@ -137,9 +137,11 @@ function differentiate_sum(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :+
         error("Not a valid sum call: $(ex)")
     end
-    new_args = {:+}
-    for i in 2:length(ex.args)
-        push(new_args, differentiate(ex.args[i], target))
+    n = length(ex.args)
+    new_args = Array(Any, n)
+    new_args[1] = :+
+    for i in 2:n
+        new_args[i] = differentiate(ex.args[i], target)
     end
     return Expr(:call, new_args, Any)
 end
@@ -151,9 +153,11 @@ function differentiate_subtraction(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :-
         error("Not a valid subtraction call: $(ex)")
     end
-    new_args = {:-}
-    for i in 2:length(ex.args)
-        push(new_args, differentiate(ex.args[i], target))
+    n = length(ex.args)
+    new_args = Array(Any, n)
+    new_args[1] = :-
+    for i in 2:n
+        new_args[i] = differentiate(ex.args[i], target)
     end
     return Expr(:call, new_args, Any)
 end
@@ -164,25 +168,22 @@ function differentiate_product(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :*
         error("Not a valid product call: $(ex)")
     end
-    return Expr(:call,
-                {
-                    :+,
-                    Expr(:call,
-                         {
-                            :*,
-                            differentiate(ex.args[2], target),
-                            ex.args[3]
-                         },
-                         Any),
-                    Expr(:call,
-                         {
-                           :*,
-                           ex.args[2],
-                           differentiate(ex.args[3], target)
-                         },
-                         Any)
-                },
-                Any)
+    n = length(ex.args)
+    res_args = Array(Any, n)
+    res_args[1] = :+
+    for i in 2:n
+       new_args = Array(Any, n)
+       new_args[1] = :*
+       for j in 2:n
+           if j == i
+               new_args[j] = differentiate(ex.args[j], target)
+           else
+               new_args[j] = ex.args[j]
+           end
+       end
+       res_args[i] = Expr(:call, new_args, Any)
+    end
+    return Expr(:call, res_args, Any)
 end
 
 # The Quotient Rule
@@ -440,7 +441,7 @@ function differentiate(ex::Expr, target::Symbol)
         if has(differentiate_lookup, ex.args[1])
             return simplify(differentiate_lookup[ex.args[1]](ex, target))
         else
-            error("Unknown function called in AST: $(ex.args[1])")
+            error("Don't know how to differentiate $(ex.args[1])")
         end
     else
         return simplify(differentiate(ex.head))
@@ -460,6 +461,7 @@ differentiate(ex::Expr) = differentiate(ex, :x)
 differentiate(s::String, target::Symbol) = differentiate(parse(s)[1], target)
 differentiate(s::String, targets::Vector{Symbol}) = differentiate(parse(s)[1], targets)
 differentiate(s::String, target::String) = differentiate(parse(s)[1], symbol(target))
+differentiate{T <: String}(s::String, targets::Vector{T}) = differentiate(parse(s)[1], map(target -> symbol(target), targets))
 differentiate(s::String) = differentiate(parse(s)[1], :x)
 
 # begin x = 1; eval(differentiate(:(sin(x)), :x)) end
