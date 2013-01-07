@@ -1,5 +1,3 @@
-# TODO: Add pretty printing via deparse()
-
 simplify(n::Number) = n
 
 simplify(s::Symbol) = s
@@ -88,6 +86,7 @@ function simplify_power(ex::Expr)
     end
 end
 
+# Lookup Table of Simplification Rules
 simplify_lookup = {
                     :+ => simplify_sum,
                     :- => simplify_subtraction,
@@ -282,7 +281,6 @@ function differentiate_power(ex::Expr, target::Symbol)
     elseif ex.args[2] != target && ex.args[3] != target
         return ex
     else
-        # Case 4: n^x <=> n^x * log(n)
         return Expr(:call,
                     {
                         :*,
@@ -422,7 +420,7 @@ function differentiate_log(ex::Expr, target::Symbol)
                 Any)
 end
 
-# Lookup Table of Rules
+# Lookup Table of Differentation Rules
 differentiate_lookup = {
                           :+ => differentiate_sum,
                           :- => differentiate_subtraction,
@@ -458,11 +456,21 @@ end
 
 differentiate(ex::Expr) = differentiate(ex, :x)
 
-differentiate(s::String, target::Symbol) = differentiate(parse(s)[1], target)
-differentiate(s::String, targets::Vector{Symbol}) = differentiate(parse(s)[1], targets)
-differentiate(s::String, target::String) = differentiate(parse(s)[1], symbol(target))
-differentiate{T <: String}(s::String, targets::Vector{T}) = differentiate(parse(s)[1], map(target -> symbol(target), targets))
-differentiate(s::String) = differentiate(parse(s)[1], :x)
+function differentiate(s::String, target::Symbol)
+    differentiate(parse(s)[1], target)
+end
+function differentiate(s::String, targets::Vector{Symbol})
+    differentiate(parse(s)[1], targets)
+end
+function differentiate(s::String, target::String)
+    differentiate(parse(s)[1], symbol(target))
+end
+function differentiate{T <: String}(s::String, targets::Vector{T})
+    differentiate(parse(s)[1], map(target -> symbol(target), targets))
+end
+function differentiate(s::String)
+    differentiate(parse(s)[1], :x)
+end
 
 # begin x = 1; eval(differentiate(:(sin(x)), :x)) end
 

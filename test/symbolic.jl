@@ -1,3 +1,7 @@
+#
+# Univariate Calculus
+#
+
 @assert isequal(differentiate(:(2), :x), 0)
 @assert isequal(differentiate(:(x), :x), 1)
 @assert isequal(differentiate(:(x + x), :x), 2)
@@ -26,12 +30,21 @@
 @assert isequal(differentiate(:(n^x), :x), :(*(^(n, x), log(n))))
 @assert isequal(differentiate(:(n^n), :x), :(^(n,n)))
 
-# TODO: Get these right.
-#@assert isequal(differentiate("sin(x) + cos(x)^2"), :(+(cos(x),*(2,cos(x)))))
-#@assert isequal(differentiate("x + exp(-x) + sin(exp(x))", :x), :(+(1, *(exp(-(x)), -1), *(cos(exp(x)), exp(x)))))
+#
+# Multivariate Calculus
+#
 
-#        )
-# :(+(1,*(exp(-(x)),-1)))
+@assert isequal(differentiate(:(sin(x) + sin(y)), [:x, :y]), [:(cos(x)), :(cos(y))])
+
+# TODO: Get the generalized power rule right.
+# @assert isequal(differentiate(:(sin(x)^2), :x), :(2 * sin(x) * cos(x)))
+
+#
+# Strings instead of symbols
+#
+
+# @assert isequal(differentiate("sin(x) + cos(x)^2"), :(+(cos(x),*(2,cos(x)))))
+@assert isequal(differentiate("x + exp(-x) + sin(exp(x))", :x), :(+(1, *(exp(-(x)), -1), *(cos(exp(x)), exp(x)))))
 
 # TODO: Make these work
 # differentiate(:(sin(x)), :x)(0.0)

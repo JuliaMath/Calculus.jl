@@ -4,6 +4,7 @@ module Calculus
            check_gradient,
            check_hessian,
            check_second_derivative,
+           deparse,
            derivative,
            differentiate,
            gradient,
@@ -51,12 +52,10 @@ module Calculus
     #   hstorage::Any
     # end
 
-    # import Base.convert
-    # convert(::Function, df::DifferentiableFunction) = df.f
-
     include(joinpath(julia_pkgdir(), "Calculus", "src", "finite_difference.jl"))
     include(joinpath(julia_pkgdir(), "Calculus", "src", "derivative.jl"))
     include(joinpath(julia_pkgdir(), "Calculus", "src", "check_derivative.jl"))
     include(joinpath(julia_pkgdir(), "Calculus", "src", "integrate.jl"))
     include(joinpath(julia_pkgdir(), "Calculus", "src", "symbolic.jl"))
+    include(joinpath(julia_pkgdir(), "Calculus", "src", "deparse.jl"))
 end
