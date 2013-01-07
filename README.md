@@ -137,6 +137,7 @@ Calculus.jl is built on contributions from:
 * Blake Johnson
 * Avik Sengupta
 
-And draws inspiration and ideas from minFunc by:
+And draws inspiration and ideas from:
 
 * Mark Schmidt
+* Jonas Rauch
