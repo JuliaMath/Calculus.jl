@@ -446,9 +446,19 @@ function differentiate(ex::Expr, target::Symbol)
         return simplify(differentiate(ex.head))
     end
 end
+function differentiate(ex::Expr, targets::Vector{Symbol})
+    n = length(targets)
+    exprs = Array(Expr, n)
+    for i in 1:n
+        exprs[i] = differentiate(ex, targets[i])
+    end
+    return exprs
+end
+
 differentiate(ex::Expr) = differentiate(ex, :x)
 
 differentiate(s::String, target::Symbol) = differentiate(parse(s)[1], target)
+differentiate(s::String, targets::Vector{Symbol}) = differentiate(parse(s)[1], targets)
 differentiate(s::String, target::String) = differentiate(parse(s)[1], symbol(target))
 differentiate(s::String) = differentiate(parse(s)[1], :x)
 
