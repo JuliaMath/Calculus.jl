@@ -1,5 +1,5 @@
+# Numbers and symbols can't be simplified further
 simplify(n::Number) = n
-
 simplify(s::Symbol) = s
 
 # Handles all lengths for ex.args
@@ -86,7 +86,7 @@ function simplify_power(ex::Expr)
     end
 end
 
-# Lookup Table of Simplification Rules
+# Lookup table of simplification rules
 simplify_lookup = {
                     :+ => simplify_sum,
                     :- => simplify_subtraction,
@@ -95,6 +95,7 @@ simplify_lookup = {
                     :^ => simplify_power
                   }
 
+# The simplest form of an expression is a fixed point of simplify()
 function simplify(ex::Expr)
     if ex.head == :call
         if all(map(a -> isa(a, Number), ex.args[2:end]))
@@ -163,6 +164,7 @@ end
 
 # The Product Rule
 # d/dx (f * g) = (d/dx f) * g + f * (d/dx g)
+# d/dx (f * g * h) = (d/dx f) * g * h + f * (d/dx g) * h + ...
 function differentiate_product(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :*
         error("Not a valid product call: $(ex)")
@@ -229,6 +231,7 @@ end
 # Case 2: x^x <=> d/dx x^x = x^x (log(x) + 1)
 # Case 3: n^n <=> d/dx n^n = 0
 # Case 4: n^x <=> n^x * log(n)
+# TODO: Handle general case for things like sin(x)^2
 function differentiate_power(ex::Expr, target::Symbol)
     if ex.head != :call || ex.args[1] != :^
         error("Not a valid power call: $(ex)")
@@ -420,7 +423,7 @@ function differentiate_log(ex::Expr, target::Symbol)
                 Any)
 end
 
-# Lookup Table of Differentation Rules
+# Lookup table of differentation rules
 differentiate_lookup = {
                           :+ => differentiate_sum,
                           :- => differentiate_subtraction,

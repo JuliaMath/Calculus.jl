@@ -14,3 +14,7 @@ function deparse(ex::Expr)
     end
 end
 deparse(other::Any) = string(other)
+
+# TODO: Examine string contents of inputs, insert parentheses if added:
+# + (CONTAINS * OR /)
+# - (CONTAINS * OR /)

@@ -9,7 +9,8 @@ my_tests = ["test/finite_difference.jl",
             "test/derivative.jl",
             "test/check_derivative.jl",
             "test/integrate.jl",
-            "test/symbolic.jl"]
+            "test/symbolic.jl",
+            "test/deparse.jl"]
 
 println("Running tests:")
 
