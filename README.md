@@ -4,11 +4,10 @@ Calculus.jl
 # Introduction
 
 The Calculus package provides tools for working with the basic calculus
-operations of differentiation and integration. Right now, only
-differentation is supported. You can use the Calculus package to produce
+operations of differentiation and integration. You can use the Calculus package to produce
 approximate derivatives by several forms of finite differencing or to
 produce exact derivative using symbolic differentiation, which is still
-a work in progress.
+a work in progress. You can also compute definite integrals by different numerical methods. 
 
 # API
 
