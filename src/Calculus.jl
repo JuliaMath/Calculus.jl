@@ -52,10 +52,10 @@ module Calculus
     #   hstorage::Any
     # end
 
-    include(joinpath(julia_pkgdir(), "Calculus", "src", "finite_difference.jl"))
-    include(joinpath(julia_pkgdir(), "Calculus", "src", "derivative.jl"))
-    include(joinpath(julia_pkgdir(), "Calculus", "src", "check_derivative.jl"))
-    include(joinpath(julia_pkgdir(), "Calculus", "src", "integrate.jl"))
-    include(joinpath(julia_pkgdir(), "Calculus", "src", "symbolic.jl"))
-    include(joinpath(julia_pkgdir(), "Calculus", "src", "deparse.jl"))
+    include("finite_difference.jl")
+    include("derivative.jl")
+    include("check_derivative.jl")
+    include("integrate.jl")
+    include("symbolic.jl")
+    include("deparse.jl")
 end

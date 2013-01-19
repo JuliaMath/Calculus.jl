@@ -12,7 +12,7 @@ function simplify_sum(ex::Expr)
     elseif length(new_args) == 1
         return new_args[1]
     else
-        unshift(new_args, :+)
+        unshift!(new_args, :+)
         return Expr(:call, new_args, Any)
     end
 end
@@ -27,7 +27,7 @@ function simplify_subtraction(ex::Expr)
     elseif length(new_args) == 2 && new_args[1] == new_args[2]
         return 0
     else
-        unshift(new_args, :-)
+        unshift!(new_args, :-)
         return Expr(:call, new_args, Any)
     end
 end
@@ -45,7 +45,7 @@ function simplify_product(ex::Expr)
     elseif any(new_args .== 0)
         return 0
     else
-        unshift(new_args, :*)
+        unshift!(new_args, :*)
         return Expr(:call, new_args, Any)
     end
 end
@@ -60,7 +60,7 @@ function simplify_quotient(ex::Expr)
     elseif new_args[1] == 0
         return 0
     else
-        unshift(new_args, :/)
+        unshift!(new_args, :/)
         return Expr(:call, new_args, Any)
     end
 end
@@ -81,7 +81,7 @@ function simplify_power(ex::Expr)
     elseif new_args[1] == 1
         return 1
     else
-        unshift(new_args, :^)
+        unshift!(new_args, :^)
         return Expr(:call, new_args, Any)
     end
 end
