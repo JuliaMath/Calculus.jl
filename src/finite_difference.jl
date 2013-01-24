@@ -16,19 +16,9 @@
 ## In the examples I've tested, this strategy is best when x is small
 ##  and becomes very bad when x is larger
 ##
-## In previous iteration of derivative_numer, epsilon was calculated as
-##
-##   epsilon = eps(max(1.0, abs(x)))^(1/3)
-##
-## In the examples I've tested, this strategy is bad when x is small
-##  and becomes better when x is larger
-##
-## The current approach comes from minFunc
-##
-##    epsilon = 2 * sqrt(1e-12) * (1 + norm(x))
-##
-## TODO: Perform a systematic comparison across several functions
-##       and several ranges of inputs
+## The proper setting of epsilon depends on whether we're doing central
+##  differencing or forward differencing. See, for example, section 5.7 of
+##  Numerical Recipes.
 ##
 ##############################################################################
 
@@ -41,12 +31,14 @@
 function finite_difference{T <: Number}(f::Function,
                                         x::T,
                                         dtype::Symbol)
-    epsilon = 2 * sqrt(1e-12) * (1 + norm(x))
-
     if dtype == :forward
-        return (f(x + epsilon) - f(x)) / epsilon
+        epsilon = eps(max(one(T), abs(x)))^(1/2)
+        xplusdx = x + epsilon
+        return (f(xplusdx) - f(x)) / (xplusdx - x) # use machine-representable numbers
     elseif dtype == :central
-        return (f(x + epsilon) - f(x - epsilon)) / (2 * epsilon)
+        epsilon = eps(max(one(T), abs(x)))^(1/3)
+        xplusdx, xminusdx = x + epsilon, x - epsilon
+        return (f(xplusdx) - f(xminusdx)) / (xplusdx - xminusdx)
     else
         error("dtype must be :forward or :central")
     end
@@ -62,8 +54,6 @@ finite_difference(f::Function, x::Number) = finite_difference(f, x, :central)
 function finite_difference{T <: Number}(f::Function,
                                         x::Vector{T},
                                         dtype::Symbol)
-    epsilon = 2 * sqrt(1e-12) * (1 + norm(x))
-
     # What is the dimension of x?
     n = length(x)
 
@@ -78,15 +68,17 @@ function finite_difference{T <: Number}(f::Function,
         f_x = f(x)
         xplusdx = copy(x)
         for i = 1:n
+            epsilon = eps(max(one(T), abs(x[i])))^(1/2)
             xplusdx[i] = x[i] + epsilon
-            differential[i] = (f(xplusdx) - f_x) / epsilon
+            differential[i] = (f(xplusdx) - f_x) / (xplusdx[i] - x[i])
             xplusdx[i] = x[i]
         end
     elseif dtype == :central
         xplusdx, xminusdx = copy(x), copy(x)
         for i = 1:n
+            epsilon = eps(max(one(T), abs(x[i])))^(1/3)
             xplusdx[i], xminusdx[i] = x[i] + epsilon, x[i] - epsilon
-            differential[i] = (f(xplusdx) - f(xminusdx)) / (2 * epsilon)
+            differential[i] = (f(xplusdx) - f(xminusdx)) / (xplusdx[i] - xminusdx[i])
             xplusdx[i], xminusdx[i] = x[i], x[i]
         end
     else
@@ -107,8 +99,6 @@ end
 ##############################################################################
 
 function finite_difference_jacobian{T <: Number}(f::Function, x::Vector{T}, dtype::Symbol)
-    epsilon = 2 * sqrt(1e-12) * (1 + norm(x))
-
     # What is the dimension of x?
     n = length(x)
 
@@ -122,16 +112,18 @@ function finite_difference_jacobian{T <: Number}(f::Function, x::Vector{T}, dtyp
     if dtype == :forward
         xplusdx = copy(x)
         for i = 1:n
+            epsilon = eps(max(one(T), abs(x[i])))^(1/2)
             xplusdx[i] = x[i] + epsilon
-            J[:, i] = (f(xplusdx) - f_x) / epsilon
+            J[:, i] = (f(xplusdx) - f_x) / (xplusdx[i] - x[i])
             xplusdx[i] = x[i]
         end
         return J
     elseif dtype == :central
         xplusdx, xminusdx = copy(x), copy(x)
         for i = 1:n
+            epsilon = eps(max(one(T), abs(x[i])))^(1/3)
             xplusdx[i], xminusdx[i] = x[i] + epsilon, x[i] - epsilon
-            J[:, i] = (f(xplusdx) - f(xminusdx)) / (2 * epsilon)
+            J[:, i] = (f(xplusdx) - f(xminusdx)) / (xplusdx[i] - xminusdx[i])
             xplusdx[i], xminusdx[i] = x[i], x[i]
         end
         return J
@@ -142,27 +134,17 @@ end
 
 ##############################################################################
 ##
-## Second derivative of f: R^n -> R
+## Second derivative of f: R -> R
 ##
 ##############################################################################
 
-function finite_difference_hessian(f::Function, g::Function, x::Number, dtype::Symbol)
-    epsilon = 2 * sqrt(1e-12) * (1 + norm(x))
+function finite_difference_hessian{T <: Number}(f::Function, x::T)
+    epsilon = eps(max(one(T), abs(x)))^(1/4)
+    (f(x + epsilon) - 2*f(x) + f(x - epsilon))/epsilon^2
+end
+finite_difference_hessian(f::Function, g::Function, x::Number, dtype::Symbol) = finite_difference(g, x, dtype)
+finite_difference_hessian(f::Function, g::Function, x::Number) = finite_difference(g, x, :central)
 
-    if dtype == :forward
-        return (g(x + epsilon) - g(x)) / epsilon
-    elseif dtype == :central
-        return (g(x + epsilon) - g(x - epsilon)) / (2 * epsilon)
-    else
-        error("dtype must :forward or :central")
-    end
-end
-function finite_difference_hessian(f::Function, x::Number, dtype::Symbol)
-    finite_difference_hessian(f, derivative(f), x, dtype)
-end
-function finite_difference_hessian(f::Function, x::Number)
-    finite_difference_hessian(f, derivative(f), x, :central)
-end
 
 ##############################################################################
 ##
@@ -170,44 +152,40 @@ end
 ##
 ##############################################################################
 
-function finite_difference_hessian{T <: Number}(f::Function, g::Function, x::Vector{T}, dtype::Symbol)
-    epsilon = 2 * sqrt(1e-12) * (1 + norm(x))
-
+function finite_difference_hessian{T <: Number}(f::Function, x::Vector{T})
     # What is the dimension of x?
     n = length(x)
 
     # Initialize an empty Hessian
     H = Array(Float64, n, n)
 
-    if dtype == :forward
-        g_x = g(x)
-        xplusdx = copy(x)
-        for i in 1:n
-            xplusdx[i] = x[i] + epsilon
-            H[:, i] = (g(xplusdx) - g_x) / epsilon
-            xplusdx[i] = x[i]
+    xpp, xpm, xmp, xmm = copy(x), copy(x), copy(x), copy(x)
+    fx = f(x)
+    for i = 1:n
+        xi = x[i]
+        epsilon = eps(max(one(T), abs(x[i])))^(1/4)
+        xpp[i], xmm[i] = xi + epsilon, xi - epsilon
+        H[i, i] = (f(xpp) - 2*fx + f(xmm)) / epsilon^2
+        epsiloni = eps(max(one(T), abs(x[i])))^(1/3)
+        xp = xi + epsiloni
+        xm = xi - epsiloni
+        xpp[i], xpm[i], xmp[i], xmm[i] = xp, xp, xm, xm
+        for j = i+1:n
+            xj = x[j]
+            epsilonj = eps(max(one(T), abs(x[j])))^(1/3)
+            xp = xj + epsilonj
+            xm = xj - epsilonj
+            xpp[j], xpm[j], xmp[j], xmm[j] = xp, xm, xp, xm
+            H[i, j] = (f(xpp) - f(xpm) - f(xmp) + f(xmm))/(4*epsiloni*epsilonj)
+            xpp[j], xpm[j], xmp[j], xmm[j] = xj, xj, xj, xj
         end
-        symmetrize!(H)
-        return H
-    elseif dtype == :central
-        xplusdx, xminusdx = copy(x), copy(x)
-        for i = 1:n
-            xplusdx[i], xminusdx[i] = x[i] + epsilon, x[i] - epsilon
-            H[:, i] = (g(xplusdx) - g(xminusdx)) / (2 * epsilon)
-            xplusdx[i], xminusdx[i] = x[i], x[i]
-        end
-        symmetrize!(H)
-        return H
-    else
-        error("dtype must :forward or :central")
+        xpp[i], xpm[i], xmp[i], xmm[i] = xi, xi, xi, xi
     end
+    symmetrize!(H)
+    H
 end
-function finite_difference_hessian{T <: Number}(f::Function, x::Vector{T}, dtype::Symbol)
-    finite_difference_hessian(f, gradient(f), x, dtype)
-end
-function finite_difference_hessian{T <: Number}(f::Function, x::Vector{T})
-    finite_difference_hessian(f, gradient(f), x, :central)
-end
+finite_difference_hessian{T}(f::Function, g::Function, x::Vector{T}, dtype::Symbol) = finite_difference_jacobian(g, x, dtype)
+finite_difference_hessian{T}(f::Function, g::Function, x::Vector{T}) = finite_difference_jacobian(g, x, :central)
 
 ##############################################################################
 ##
