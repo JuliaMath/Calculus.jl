@@ -32,11 +32,11 @@ function finite_difference{T <: Number}(f::Function,
                                         x::T,
                                         dtype::Symbol)
     if dtype == :forward
-        epsilon = eps(max(one(T), abs(x)))^(1/2)
+        epsilon = sqrt(eps(max(one(T), abs(x))))
         xplusdx = x + epsilon
         return (f(xplusdx) - f(x)) / (xplusdx - x) # use machine-representable numbers
     elseif dtype == :central
-        epsilon = eps(max(one(T), abs(x)))^(1/3)
+        epsilon = cbrt(eps(max(one(T), abs(x))))
         xplusdx, xminusdx = x + epsilon, x - epsilon
         return (f(xplusdx) - f(xminusdx)) / (xplusdx - xminusdx)
     else
@@ -68,7 +68,7 @@ function finite_difference{T <: Number}(f::Function,
         f_x = f(x)
         xplusdx = copy(x)
         for i = 1:n
-            epsilon = eps(max(one(T), abs(x[i])))^(1/2)
+            epsilon = sqrt(eps(max(one(T), abs(x[i]))))
             xplusdx[i] = x[i] + epsilon
             differential[i] = (f(xplusdx) - f_x) / (xplusdx[i] - x[i])
             xplusdx[i] = x[i]
@@ -76,7 +76,7 @@ function finite_difference{T <: Number}(f::Function,
     elseif dtype == :central
         xplusdx, xminusdx = copy(x), copy(x)
         for i = 1:n
-            epsilon = eps(max(one(T), abs(x[i])))^(1/3)
+            epsilon = cbrt(eps(max(one(T), abs(x[i]))))
             xplusdx[i], xminusdx[i] = x[i] + epsilon, x[i] - epsilon
             differential[i] = (f(xplusdx) - f(xminusdx)) / (xplusdx[i] - xminusdx[i])
             xplusdx[i], xminusdx[i] = x[i], x[i]
@@ -112,7 +112,7 @@ function finite_difference_jacobian{T <: Number}(f::Function, x::Vector{T}, dtyp
     if dtype == :forward
         xplusdx = copy(x)
         for i = 1:n
-            epsilon = eps(max(one(T), abs(x[i])))^(1/2)
+            epsilon = sqrt(eps(max(one(T), abs(x[i]))))
             xplusdx[i] = x[i] + epsilon
             J[:, i] = (f(xplusdx) - f_x) / (xplusdx[i] - x[i])
             xplusdx[i] = x[i]
@@ -121,7 +121,7 @@ function finite_difference_jacobian{T <: Number}(f::Function, x::Vector{T}, dtyp
     elseif dtype == :central
         xplusdx, xminusdx = copy(x), copy(x)
         for i = 1:n
-            epsilon = eps(max(one(T), abs(x[i])))^(1/3)
+            epsilon = cbrt(eps(max(one(T), abs(x[i]))))
             xplusdx[i], xminusdx[i] = x[i] + epsilon, x[i] - epsilon
             J[:, i] = (f(xplusdx) - f(xminusdx)) / (xplusdx[i] - xminusdx[i])
             xplusdx[i], xminusdx[i] = x[i], x[i]
@@ -166,13 +166,13 @@ function finite_difference_hessian{T <: Number}(f::Function, x::Vector{T})
         epsilon = eps(max(one(T), abs(x[i])))^(1/4)
         xpp[i], xmm[i] = xi + epsilon, xi - epsilon
         H[i, i] = (f(xpp) - 2*fx + f(xmm)) / epsilon^2
-        epsiloni = eps(max(one(T), abs(x[i])))^(1/3)
+        epsiloni = cbrt(eps(max(one(T), abs(x[i]))))
         xp = xi + epsiloni
         xm = xi - epsiloni
         xpp[i], xpm[i], xmp[i], xmm[i] = xp, xp, xm, xm
         for j = i+1:n
             xj = x[j]
-            epsilonj = eps(max(one(T), abs(x[j])))^(1/3)
+            epsilonj = cbrt(eps(max(one(T), abs(x[j]))))
             xp = xj + epsilonj
             xm = xj - epsilonj
             xpp[j], xpm[j], xmp[j], xmm[j] = xp, xm, xp, xm
