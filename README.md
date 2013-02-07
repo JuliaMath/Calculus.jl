@@ -31,7 +31,6 @@ There are a few basic approaches to using the Calculus package:
 
 ## Direct Finite Differencing
 
-	require("Calculus")
 	using Calculus
 
 	# Compare with cos(0.0)
@@ -64,7 +63,6 @@ There are a few basic approaches to using the Calculus package:
 
 ## Higher-Order Functions
 
-	require("Calculus")
 	using Calculus
 
 	g1 = derivative(x -> sin(x))
@@ -94,7 +92,6 @@ derivatives as well. This operator can be used abritratily many times, but you
 should keep in mind that the approximation degrades with each approximate
 derivative you calculate:
 
-	require("Calculus")
 	using Calculus
 
 	f(x) = sin(x)
@@ -104,7 +101,6 @@ derivative you calculate:
 
 ## Integration using Simpson's Rule
 
-	require("Calculus")
 	using Calculus
 
 	# Compare with log(2)
@@ -115,7 +111,6 @@ derivative you calculate:
 
 ## Symbolic Differentiation
 
-	require("Calculus")
 	using Calculus
 
 	differentiate("cos(x) + sin(x) + exp(-x) * cos(x)", :x)
