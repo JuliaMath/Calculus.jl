@@ -13,7 +13,7 @@ function simplify_sum(ex::Expr)
         return new_args[1]
     else
         unshift!(new_args, :+)
-        return Expr(:call, new_args, Any)
+        return Expr(:call, new_args...)
     end
 end
 
@@ -28,7 +28,7 @@ function simplify_subtraction(ex::Expr)
         return 0
     else
         unshift!(new_args, :-)
-        return Expr(:call, new_args, Any)
+        return Expr(:call, new_args...)
     end
 end
 
@@ -46,7 +46,7 @@ function simplify_product(ex::Expr)
         return 0
     else
         unshift!(new_args, :*)
-        return Expr(:call, new_args, Any)
+        return Expr(:call, new_args...)
     end
 end
 
@@ -61,7 +61,7 @@ function simplify_quotient(ex::Expr)
         return 0
     else
         unshift!(new_args, :/)
-        return Expr(:call, new_args, Any)
+        return Expr(:call, new_args...)
     end
 end
 
@@ -82,7 +82,7 @@ function simplify_power(ex::Expr)
         return 1
     else
         unshift!(new_args, :^)
-        return Expr(:call, new_args, Any)
+        return Expr(:call, new_args...)
     end
 end
 
@@ -143,7 +143,7 @@ function differentiate_sum(ex::Expr, target::Symbol)
     for i in 2:n
         new_args[i] = differentiate(ex.args[i], target)
     end
-    return Expr(:call, new_args, Any)
+    return Expr(:call, new_args...)
 end
 
 # The Subtraction Rule for Unary and Binary -
@@ -159,7 +159,7 @@ function differentiate_subtraction(ex::Expr, target::Symbol)
     for i in 2:n
         new_args[i] = differentiate(ex.args[i], target)
     end
-    return Expr(:call, new_args, Any)
+    return Expr(:call, new_args...)
 end
 
 # The Product Rule
@@ -182,9 +182,9 @@ function differentiate_product(ex::Expr, target::Symbol)
                new_args[j] = ex.args[j]
            end
        end
-       res_args[i] = Expr(:call, new_args, Any)
+       res_args[i] = Expr(:call, new_args...)
     end
-    return Expr(:call, res_args, Any)
+    return Expr(:call, res_args...)
 end
 
 # The Quotient Rule
@@ -194,36 +194,21 @@ function differentiate_quotient(ex::Expr, target::Symbol)
         error("Not a valid quotient call: $(ex)")
     end
     return Expr(:call,
-                {
-                    :/,
-                    Expr(:call,
-                         {
-                            :-,
-                            Expr(:call,
-                                 {
-                                    :*,
-                                    differentiate(ex.args[2], target),
-                                    ex.args[3]
-                                 },
-                                 Any),
-                            Expr(:call,
-                                 {
-                                    :*,
-                                    ex.args[2],
-                                    differentiate(ex.args[3], target)
-                                 },
-                                 Any)
-                         },
-                         Any),
-                    Expr(:call,
-                         {
-                            :^,
-                            ex.args[3],
-                            2
-                         },
-                         Any)
-                },
-                Any)
+                :/,
+                Expr(:call,
+                     :-,
+                     Expr(:call,
+                          :*,
+                          differentiate(ex.args[2], target),
+                          ex.args[3]),
+                     Expr(:call,
+                          :*,
+                          ex.args[2],
+                          differentiate(ex.args[3], target))),
+                Expr(:call,
+                     :^,
+                     ex.args[3],
+                     2))
 end
 
 # The Power Rule:
@@ -238,70 +223,39 @@ function differentiate_power(ex::Expr, target::Symbol)
     end
     if ex.args[2] == target && ex.args[3] != target
         return Expr(:call,
-                    {
-                        :*,
-                        ex.args[3],
-                        Expr(:call,
-                             {
-                                :^,
-                                ex.args[2],
-                                Expr(:call,
-                                     {
-                                         :-,
-                                         ex.args[3],
-                                         1
-                                     },
-                                     Any)
-                             },
-                             Any)
-                    },
-                    Any)
+                    :*,
+                    ex.args[3],
+                    Expr(:call,
+                         :^,
+                         ex.args[2],
+                         Expr(:call,
+                              :-,
+                              ex.args[3],
+                              1)))
     elseif ex.args[2] == target && ex.args[3] == target
         return Expr(:call,
-                    {
-                        :*,
-                        Expr(:call,
-                             {
-                                :^,
-                                target,
-                                target
-                             },
-                             Any),
-                        Expr(:call,
-                             {
-                                :+,
-                                Expr(:call,
-                                     {
-                                        :log,
-                                        target
-                                     },
-                                     Any),
-                                1
-                             },
-                             Any)
-                    },
-                    Any)
+                    :*,
+                    Expr(:call,
+                         :^,
+                         target,
+                         target),
+                    Expr(:call,
+                         :+,
+                         Expr(:call,
+                              :log,
+                              target)))
     elseif ex.args[2] != target && ex.args[3] != target
         return ex
     else
         return Expr(:call,
-                    {
-                        :*,
-                        Expr(:call,
-                             {
-                                :^,
-                                ex.args[2],
-                                ex.args[3]
-                             },
-                             Any),
-                        Expr(:call,
-                             {
-                                :log,
-                                ex.args[2]
-                             },
-                             Any)
-                    },
-                    Any)
+                    :*,
+                    Expr(:call,
+                         :^,
+                         ex.args[2],
+                         ex.args[3]),
+                    Expr(:call,
+                         :log,
+                         ex.args[2]))
     end
 end
 
@@ -312,17 +266,9 @@ function differentiate_sin(ex::Expr, target::Symbol)
         error("Not a valid sin call: $(ex)")
     end
     return Expr(:call,
-                {
-                    :*,
-                    Expr(:call,
-                         {
-                            :cos,
-                            ex.args[2]
-                         },
-                         Any),
-                    differentiate(ex.args[2], target)
-                },
-                Any)
+                :*,
+                Expr(:call, :cos, ex.args[2]),
+                differentiate(ex.args[2], target))
 end
 
 # The Cos Rule:
@@ -332,22 +278,11 @@ function differentiate_cos(ex::Expr, target::Symbol)
         error("Not a valid cos call: $(ex)")
     end
     return Expr(:call,
-                {
-                    :*,
-                    Expr(:call,
-                         {
-                            :-,
-                            Expr(:call,
-                                 {
-                                    :sin,
-                                    ex.args[2]
-                                 },
-                                 Any)
-                         },
-                         Any),
-                    differentiate(ex.args[2], target)
-                },
-                Any)
+                :*,
+                Expr(:call,
+                     :-,
+                     Expr(:call, :sin, ex.args[2])),
+                differentiate(ex.args[2], target))
 end
 
 # The Tan Rule:
@@ -357,29 +292,15 @@ function differentiate_tan(ex::Expr, target::Symbol)
         error("Not a valid tan call: $(ex)")
     end
     return Expr(:call,
-                {
-                    :*,
-                    Expr(:call,
-                         {
-                            :+,
-                            1,
-                            Expr(:call,
-                                 {
-                                    :^,
-                                    Expr(:call,
-                                         {
-                                            :tan,
-                                            ex.args[2]
-                                         },
-                                         Any),
-                                    2
-                                 },
-                                 Any)
-                         },
-                         Any),
-                    differentiate(ex.args[2], target)
-                },
-                Any)
+                :*,
+                Expr(:call,
+                     :+,
+                     1,
+                     Expr(:call,
+                          :^,
+                          Expr(:call, :tan, ex.args[2]),
+                          2)),
+                differentiate(ex.args[2], target))
 end
 
 # The Exp Rule:
@@ -389,17 +310,9 @@ function differentiate_exp(ex::Expr, target::Symbol)
         error("Not a valid exp call: $(ex)")
     end
     return Expr(:call,
-                {
-                    :*,
-                    Expr(:call,
-                         {
-                            :exp,
-                            ex.args[2]
-                         },
-                         Any),
-                    differentiate(ex.args[2], target)
-                },
-                Any)
+                :*,
+                Expr(:call, :exp, ex.args[2]),
+                differentiate(ex.args[2], target))
 end
 
 # The Log Rule:
@@ -409,18 +322,9 @@ function differentiate_log(ex::Expr, target::Symbol)
         error("Not a valid log call: $(ex)")
     end
     return Expr(:call,
-                {
-                    :*,
-                    Expr(:call,
-                         {
-                            :/,
-                            1,
-                            ex.args[2]
-                         },
-                         Any),
-                    differentiate(ex.args[2], target)
-                },
-                Any)
+                :*,
+                Expr(:call, :/, 1, ex.args[2]),
+                differentiate(ex.args[2], target))
 end
 
 # Lookup table of differentation rules
@@ -460,34 +364,32 @@ end
 differentiate(ex::Expr) = differentiate(ex, :x)
 
 function differentiate(s::String, target::Symbol)
-    differentiate(parse(s)[1], target)
+    differentiate(parse(s), target)
 end
 function differentiate(s::String, targets::Vector{Symbol})
-    differentiate(parse(s)[1], targets)
+    differentiate(parse(s), targets)
 end
 function differentiate(s::String, target::String)
-    differentiate(parse(s)[1], symbol(target))
+    differentiate(parse(s), symbol(target))
 end
 function differentiate{T <: String}(s::String, targets::Vector{T})
-    differentiate(parse(s)[1], map(target -> symbol(target), targets))
+    differentiate(parse(s), map(target -> symbol(target), targets))
 end
 function differentiate(s::String)
-    differentiate(parse(s)[1], :x)
+    differentiate(parse(s), :x)
 end
-
-# begin x = 1; eval(differentiate(:(sin(x)), :x)) end
 
 # Full out differentation returns an immediately evaluable Julia function
 
-# function derivative(ex::Expr, target::Symbol)
-#     function f(x)
-#         d_ex = differentiate(ex, target)
-#         return eval(d_ex)
-#     end
-#     return f
-# end
+function derivative(ex::Expr, target::Symbol)
+    function f(x)
+        d_ex = differentiate(ex, target)
+        return @eval $d_ex
+    end
+    return f
+end
 
-# function derivative(ex::Expr, target::Symbol, x::Any)
-#     d_ex = differentiate(ex, target)
-#     return eval(d_ex)
-# end
+function derivative(ex::Expr, target::Symbol, x::Any)
+    d_ex = differentiate(ex, target)
+    return @eval $d_ex
+end
