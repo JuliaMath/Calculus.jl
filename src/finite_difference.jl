@@ -51,14 +51,12 @@ finite_difference(f::Function, x::Number) = finite_difference(f, x, :central)
 ##
 ##############################################################################
 
-function finite_difference{T <: Number}(f::Function,
-                                        x::Vector{T},
-                                        dtype::Symbol)
+function finite_difference!{S <: Number, T <: Number}(f::Function,
+                                                      x::Vector{S},
+                                                      differential::Vector{T},
+                                                      dtype::Symbol)
     # What is the dimension of x?
     n = length(x)
-
-    # Storage for forward differences
-    differential = Array(Float64, n)
 
     # Iterate over each dimension of the gradient separately.
     # Use xplusdx to store x + dx instead of creating a new vector on each pass.
@@ -66,26 +64,39 @@ function finite_difference{T <: Number}(f::Function,
     if dtype == :forward
         # Establish a baseline value of f(x).
         f_x = f(x)
-        xplusdx = copy(x)
         for i = 1:n
             epsilon = sqrt(eps(max(one(T), abs(x[i]))))
-            xplusdx[i] = x[i] + epsilon
-            differential[i] = (f(xplusdx) - f_x) / (xplusdx[i] - x[i])
-            xplusdx[i] = x[i]
+            oldx = x[i]
+            x[i] = oldx + epsilon
+            f_xplusdx = f(x)
+            x[i] = oldx
+            differential[i] = (f_xplusdx - f_x) / epsilon
         end
     elseif dtype == :central
-        xplusdx, xminusdx = copy(x), copy(x)
         for i = 1:n
             epsilon = cbrt(eps(max(one(T), abs(x[i]))))
-            xplusdx[i], xminusdx[i] = x[i] + epsilon, x[i] - epsilon
-            differential[i] = (f(xplusdx) - f(xminusdx)) / (xplusdx[i] - xminusdx[i])
-            xplusdx[i], xminusdx[i] = x[i], x[i]
+            oldx = x[i]
+            x[i] = oldx + epsilon
+            f_xplusdx = f(x)
+            x[i] = oldx - epsilon
+            f_xminusdx = f(x)
+            x[i] = oldx
+            differential[i] = (f_xplusdx - f_xminusdx) / (2 * epsilon)
         end
     else
         error("dtype must be :forward or :central")
     end
 
     # Return the estimated gradient.
+    return differential
+end
+function finite_difference{T <: Number}(f::Function,
+                                        x::Vector{T},
+                                        dtype::Symbol)
+    # What is the dimension of x?
+    n = length(x)
+    differential = Array(Float64, n)
+    finite_difference!(f, x, differential, dtype)
     return differential
 end
 function finite_difference{T <: Number}(f::Function, x::Vector{T})
@@ -98,6 +109,7 @@ end
 ##
 ##############################################################################
 
+# TODO: Add mutating version
 function finite_difference_jacobian{T <: Number}(f::Function, x::Vector{T}, dtype::Symbol)
     # What is the dimension of x?
     n = length(x)
@@ -151,6 +163,8 @@ finite_difference_hessian(f::Function, g::Function, x::Number) = finite_differen
 ## Hessian of f: R^n -> R
 ##
 ##############################################################################
+
+# TODO: Add mutating version
 
 function finite_difference_hessian{T <: Number}(f::Function, x::Vector{T})
     # What is the dimension of x?
