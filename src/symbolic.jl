@@ -1,11 +1,11 @@
 # Numbers and symbols can't be simplified further
 simplify(n::Number) = n
-simplify(s::Symbol) = s
+simplify(s::SymbolicVariable) = s
 
 # Handles all lengths for ex.args
 # Removes any 0's in a sum
 function simplify_sum(ex::Expr)
-    new_args = map(x -> simplify(x), filter(x -> x != 0, ex.args[2:end]))
+    new_args = map(x -> simplify(x), filter(x -> !isequal(x, 0), ex.args[2:end]))
     if length(new_args) == 0
         return 0
     # Special Case: simplify(:(+x)) == x
@@ -20,11 +20,11 @@ end
 # Assumes length(ex.args) == 3
 # Removes any 0's in a subtraction
 function simplify_subtraction(ex::Expr)
-    new_args = map(x -> simplify(x), filter(x -> x != 0, ex.args[2:end]))
+    new_args = map(x -> simplify(x), filter(x -> !isequal(x, 0), ex.args[2:end]))
     if length(new_args) == 0
         return 0
     # Special Case: simplify(:(x - x)) == 0
-    elseif length(new_args) == 2 && new_args[1] == new_args[2]
+    elseif length(new_args) == 2 && isequal(new_args[1], new_args[2])
         return 0
     else
         unshift!(new_args, :-)
@@ -35,7 +35,7 @@ end
 # Handles all lengths for ex.args
 # Removes any 1's in a product
 function simplify_product(ex::Expr)
-    new_args = map(x -> simplify(x), filter(x -> x != 1, ex.args[2:end]))
+    new_args = map(x -> simplify(x), filter(x -> !isequal(x, 1), ex.args[2:end]))
     if length(new_args) == 0
         return 1
     # Special Case: simplify(:(*x)) == x
@@ -57,7 +57,7 @@ function simplify_quotient(ex::Expr)
     if new_args[2] == 1
         return new_args[1]
     # Special Case: simplify(:(0 / x)) == 0
-    elseif new_args[1] == 0
+    elseif isequal(new_args[1], 0)
         return 0
     else
         unshift!(new_args, :/)
@@ -69,22 +69,28 @@ end
 function simplify_power(ex::Expr)
     new_args = map(x -> simplify(x), ex.args[2:end])
     # Special Case: simplify(:(x ^ 0)) == 1
-    if new_args[2] == 0
+    if isequal(new_args[2], 0)
         return 1
     # Special Case: simplify(:(x ^ 1)) == x
-    elseif new_args[2] == 1
+    elseif isequal(new_args[2], 1)
         return new_args[1]
     # Special Case: simplify(:(0 ^ x)) == 0
-    elseif new_args[1] == 0
+    elseif isequal(new_args[1], 0)
         return 0
     # Special Case: simplify(:(1 ^ x)) == 1
-    elseif new_args[1] == 1
+    elseif isequal(new_args[1], 1)
         return 1
     else
         unshift!(new_args, :^)
         return Expr(:call, new_args...)
     end
 end
+
+simplify_sum(ex::SymbolicExpression) = simplify_sum(ex.ex)
+simplify_substraction(ex::SymbolicExpression) = simplify_substraction(ex.ex)
+simplify_product(ex::SymbolicExpression) = simplify_product(ex.ex)
+simplify_quotient(ex::SymbolicExpression) = simplify_quotient(ex.ex)
+simplify_power(ex::SymbolicExpression) = simplify_power(ex.ex)
 
 # Lookup table of simplification rules
 simplify_lookup = {
@@ -103,7 +109,7 @@ function simplify(ex::Expr)
         end
         if has(simplify_lookup, ex.args[1])
             new_ex = simplify_lookup[ex.args[1]](ex)
-            while new_ex != ex
+            while !isequal(new_ex, ex)
                 new_ex, ex = simplify(new_ex), new_ex
             end
             return new_ex
@@ -117,12 +123,12 @@ end
 
 # The Constant Rule
 # d/dx c = 0
-differentiate(x::Number, target::Symbol) = 0
+differentiate(x::Number, target::SymbolicVariable) = 0
 
 # The Symbol Rule
 # d/dx x = 1
 # d/dx y = 0
-function differentiate(s::Symbol, target::Symbol)
+function differentiate(s::SymbolicVariable, target::SymbolicVariable)
     if s == target
         return 1
     else
@@ -133,7 +139,7 @@ end
 # The Sum Rule for Unary and Binary +
 # d/dx +(f) = +(d/dx f)
 # d/dx (f + g) = d/dx f + d/dx g
-function differentiate_sum(ex::Expr, target::Symbol)
+function differentiate_sum(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :+
         error("Not a valid sum call: $(ex)")
     end
@@ -149,7 +155,7 @@ end
 # The Subtraction Rule for Unary and Binary -
 # d/dx -(f) = -(d/dx f)
 # d/dx (f - g) = d/dx f - d/dx g
-function differentiate_subtraction(ex::Expr, target::Symbol)
+function differentiate_subtraction(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :-
         error("Not a valid subtraction call: $(ex)")
     end
@@ -165,7 +171,7 @@ end
 # The Product Rule
 # d/dx (f * g) = (d/dx f) * g + f * (d/dx g)
 # d/dx (f * g * h) = (d/dx f) * g * h + f * (d/dx g) * h + ...
-function differentiate_product(ex::Expr, target::Symbol)
+function differentiate_product(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :*
         error("Not a valid product call: $(ex)")
     end
@@ -189,7 +195,7 @@ end
 
 # The Quotient Rule
 # d/dx (f / g) = ((d/dx f) * g - f * (d/dx g)) / g^2
-function differentiate_quotient(ex::Expr, target::Symbol)
+function differentiate_quotient(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :/
         error("Not a valid quotient call: $(ex)")
     end
@@ -217,11 +223,11 @@ end
 # Case 3: n^n <=> d/dx n^n = 0
 # Case 4: n^x <=> n^x * log(n)
 # TODO: Handle general case for things like sin(x)^2
-function differentiate_power(ex::Expr, target::Symbol)
+function differentiate_power(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :^
         error("Not a valid power call: $(ex)")
     end
-    if ex.args[2] == target && ex.args[3] != target
+    if isequal(ex.args[2], target) && !isequal(ex.args[3], target)
         return Expr(:call,
                     :*,
                     ex.args[3],
@@ -232,7 +238,7 @@ function differentiate_power(ex::Expr, target::Symbol)
                               :-,
                               ex.args[3],
                               1)))
-    elseif ex.args[2] == target && ex.args[3] == target
+    elseif isequal(ex.args[2], target) && isequal(ex.args[3], target)
         return Expr(:call,
                     :*,
                     Expr(:call,
@@ -244,7 +250,7 @@ function differentiate_power(ex::Expr, target::Symbol)
                          Expr(:call,
                               :log,
                               target)))
-    elseif ex.args[2] != target && ex.args[3] != target
+    elseif !isequal(ex.args[2], target) && !isequal(ex.args[3], target)
         return ex
     else
         return Expr(:call,
@@ -261,7 +267,7 @@ end
 
 # The Sin Rule:
 # d/dx sin(x) = cos(x)
-function differentiate_sin(ex::Expr, target::Symbol)
+function differentiate_sin(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :sin
         error("Not a valid sin call: $(ex)")
     end
@@ -273,7 +279,7 @@ end
 
 # The Cos Rule:
 # d/dx cos(x) = -sin(x)
-function differentiate_cos(ex::Expr, target::Symbol)
+function differentiate_cos(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :cos
         error("Not a valid cos call: $(ex)")
     end
@@ -287,7 +293,7 @@ end
 
 # The Tan Rule:
 # d/dx tan(x) = 1 + tan(x)^2
-function differentiate_tan(ex::Expr, target::Symbol)
+function differentiate_tan(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :tan
         error("Not a valid tan call: $(ex)")
     end
@@ -305,7 +311,7 @@ end
 
 # The Exp Rule:
 # d/dx exp(x) = exp(x)
-function differentiate_exp(ex::Expr, target::Symbol)
+function differentiate_exp(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :exp
         error("Not a valid exp call: $(ex)")
     end
@@ -317,7 +323,7 @@ end
 
 # The Log Rule:
 # d/dx log(x) = 1 / x
-function differentiate_log(ex::Expr, target::Symbol)
+function differentiate_log(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :log
         error("Not a valid log call: $(ex)")
     end
@@ -341,7 +347,7 @@ differentiate_lookup = {
                           :log => differentiate_log
                        }
 
-function differentiate(ex::Expr, target::Symbol)
+function differentiate(ex::Expr, target::SymbolicVariable)
     if ex.head == :call
         if has(differentiate_lookup, ex.args[1])
             return simplify(differentiate_lookup[ex.args[1]](ex, target))
@@ -352,7 +358,7 @@ function differentiate(ex::Expr, target::Symbol)
         return simplify(differentiate(ex.head))
     end
 end
-function differentiate(ex::Expr, targets::Vector{Symbol})
+function differentiate(ex::Expr, targets::Vector{SymbolicVariable})
     n = length(targets)
     exprs = Array(Expr, n)
     for i in 1:n
@@ -363,10 +369,10 @@ end
 
 differentiate(ex::Expr) = differentiate(ex, :x)
 
-function differentiate(s::String, target::Symbol)
+function differentiate(s::String, target::SymbolicVariable)
     differentiate(parse(s), target)
 end
-function differentiate(s::String, targets::Vector{Symbol})
+function differentiate(s::String, targets::Vector{SymbolicVariable})
     differentiate(parse(s), targets)
 end
 function differentiate(s::String, target::String)
@@ -379,9 +385,14 @@ function differentiate(s::String)
     differentiate(parse(s), :x)
 end
 
+function differentiate(s::SymbolicExpression, wrt)
+    differentiate(s.ex, wrt)
+end
+
+
 # Full out differentation returns an immediately evaluable Julia function
 
-function derivative(ex::Expr, target::Symbol)
+function derivative(ex::Expr, target::SymbolicVariable)
     function f(x)
         d_ex = differentiate(ex, target)
         return @eval $d_ex
@@ -389,7 +400,7 @@ function derivative(ex::Expr, target::Symbol)
     return f
 end
 
-function derivative(ex::Expr, target::Symbol, x::Any)
+function derivative(ex::Expr, target::SymbolicVariable, x::Any)
     d_ex = differentiate(ex, target)
     return @eval $d_ex
 end

@@ -50,3 +50,24 @@
 # differentiate(:(sin(x)), :x)(0.0)
 # differentiate(:(sin(x)), :x)(1.0)
 # differentiate(:(sin(x)), :x)(pi)
+
+#
+# SymbolicVariable use
+#
+
+x = BasicVariable(:x)
+y = BasicVariable(:y)
+
+@assert isequal(x + y, SymbolicExpression(:($x + $y)))
+@assert isequal(differentiate(3 * x, x), 3)
+@assert isequal(differentiate(:(sin(sin(x))), :x), :(*(cos(sin(x)),cos(x))))
+@assert isequal(differentiate(sin(sin(x)), x), :(*(cos(sin($x)),cos($x))))
+
+#
+# Chain rule
+#
+
+@assert isequal(chainRule(3 * x, x), :(1*3))
+@assert isequal(chainRule(:(sin(sin(x))), :x), :(*(*(1,cos(x)),cos(sin(x)))))
+@assert isequal(chainRule(sin(sin(x)), x), :(*(*(1,cos($(x))),cos(sin($(x))))))
+
