@@ -33,14 +33,20 @@ function chainRule(ex::Expr,wrt)
     chainRule(SymbolParameter(ex.args[1]), ex.args[2:end], wrt)
 end
 
-chainRule{T}(x::SymbolParameter{T}) = error("Function " * string(T) * " not supported")
+chainRule{T}(x::SymbolParameter{T}, args, wrt) = error("Derivative of function " * string(T) * " not supported")
 
+# The Power Rule:
 function chainRule(::SymbolParameter{:^}, args, wrt)
-    x = chainRule(args[1], wrt)
-    if x != 0
-        return :( $(args[2]) * $(x) * ($(args[1]) ^ ($(args[2] - 1))) )
-    else
+    x = args[1]
+    y = args[2]
+    xp = chainRule(x, wrt)
+    yp = chainRule(y, wrt)
+    if xp == 0 && yp == 0
         return 0
+    elseif xp != 0 && yp == 0
+        return :( $y * $xp * ($x ^ ($y - 1)) )
+    else
+        return :( $x ^ $y * ($xp * $y / $x + $yp * log($x)) ) 
     end
 end
 
@@ -82,37 +88,99 @@ function chainRule(::SymbolParameter{:-}, args, wrt)
     end
 end
 
+# The Product Rule
+# d/dx (f * g) = (d/dx f) * g + f * (d/dx g)
+# d/dx (f * g * h) = (d/dx f) * g * h + f * (d/dx g) * h + ...
 function chainRule(::SymbolParameter{:*}, args, wrt)
-    if length(args) != 2
-        error("Only multiplication with two terms is currently supported")
+    n = length(args)
+    res_args = Array(Any, n)
+    for i in 1:n
+       new_args = Array(Any, n)
+       for j in 1:n
+           if j == i
+               new_args[j] = chainRule(args[j], wrt)
+           else
+               new_args[j] = args[j]
+           end
+       end
+       res_args[i] = Expr(:call, :*, new_args...)
     end
-    d1 = chainRule(args[1], wrt)
-    d2 = chainRule(args[2], wrt)
-    # there's a nicer way
-    if d1 == 0 && d2 == 0
+    return Expr(:call, :+, res_args...)
+end
+
+# The Quotient Rule
+# d/dx (f / g) = ((d/dx f) * g - f * (d/dx g)) / g^2
+function chainRule(::SymbolParameter{:/}, args, wrt)
+    x = args[1]
+    y = args[2]
+    xp = chainRule(x, wrt)
+    yp = chainRule(y, wrt)
+    if xp == 0 && yp == 0
         return 0
-    elseif d1 == 0
-        return :( $(d2)*$(args[1]) )
-    elseif d2 == 0
-        return :( $(d1)*$(args[2]) )
+    elseif xp == 0
+        return :( -$yp * $x )
+    elseif yp == 0
+        return :( $xp * $y )
     else
-        return :( $(d1)*$(args[2]) + $(args[1])*$(d2))
+        return :( ($xp * $y - $x * $yp) / $y^2 )
     end
 end
 
+# The Cos Rule:
+# d/dx cos(x) = -sin(x)
 function chainRule(::SymbolParameter{:cos}, args, wrt)
-    x = chainRule(args[1], wrt)
+    x = args[1]
+    xp = chainRule(x, wrt)
     if x != 0
-        return :(-$(x)*sin($(args[1])))
+        return :( -$xp * sin($x) )
     else
         return 0
     end
 end
 
+# The Sin Rule:
+# d/dx sin(x) = cos(x)
 function chainRule(::SymbolParameter{:sin}, args, wrt)
-    x = chainRule(args[1], wrt)
+    x = args[1]
+    xp = chainRule(x, wrt)
     if x != 0
-        return :($x*cos($(args[1])))
+        return :( $xp * cos($x) )
+    else
+        return 0
+    end
+end
+
+# The Tan Rule:
+# d/dx tan(x) = 1 + tan(x)^2
+function chainRule(::SymbolParameter{:tan}, args, wrt)
+    x = args[1]
+    xp = chainRule(x, wrt)
+    if x != 0
+        return :( $xp * (1 + tan($x)^2) )
+    else
+        return 0
+    end
+end
+
+# The Exp Rule:
+# d/dx exp(x) = exp(x)
+function chainRule(::SymbolParameter{:exp}, args, wrt)
+    x = args[1]
+    xp = chainRule(x, wrt)
+    if x != 0
+        return :( $xp * exp($x) )
+    else
+        return 0
+    end
+end
+
+# The Log Rule:
+# d/dx log(x) = 1 / x
+function chainRule(::SymbolParameter{:log}, args, wrt)
+    x = args[1]
+    xp = chainRule(x, wrt)
+    if x != 0
+        return :( $xp / $x )
     else
         return 0
     end
