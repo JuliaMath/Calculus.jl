@@ -5,7 +5,7 @@ simplify(s::SymbolicVariable) = s
 # Handles all lengths for ex.args
 # Removes any 0's in a sum
 function simplify_sum(ex::Expr)
-    new_args = map(x -> simplify(x), filter(x -> !isequal(x, 0), ex.args[2:end]))
+    new_args = map(x -> simplify(x), filter(x -> x != 0, ex.args[2:end]))
     if length(new_args) == 0
         return 0
     # Special Case: simplify(:(+x)) == x
@@ -20,11 +20,11 @@ end
 # Assumes length(ex.args) == 3
 # Removes any 0's in a subtraction
 function simplify_subtraction(ex::Expr)
-    new_args = map(x -> simplify(x), filter(x -> !isequal(x, 0), ex.args[2:end]))
+    new_args = map(x -> simplify(x), filter(x -> x != 0, ex.args[2:end]))
     if length(new_args) == 0
         return 0
     # Special Case: simplify(:(x - x)) == 0
-    elseif length(new_args) == 2 && isequal(new_args[1], new_args[2])
+    elseif length(new_args) == 2 && new_args[1] == new_args[2]
         return 0
     else
         unshift!(new_args, :-)
@@ -35,7 +35,7 @@ end
 # Handles all lengths for ex.args
 # Removes any 1's in a product
 function simplify_product(ex::Expr)
-    new_args = map(x -> simplify(x), filter(x -> !isequal(x, 1), ex.args[2:end]))
+    new_args = map(x -> simplify(x), filter(x -> x != 1, ex.args[2:end]))
     if length(new_args) == 0
         return 1
     # Special Case: simplify(:(*x)) == x
@@ -57,7 +57,7 @@ function simplify_quotient(ex::Expr)
     if new_args[2] == 1
         return new_args[1]
     # Special Case: simplify(:(0 / x)) == 0
-    elseif isequal(new_args[1], 0)
+    elseif new_args[1] == 0
         return 0
     else
         unshift!(new_args, :/)
@@ -69,28 +69,22 @@ end
 function simplify_power(ex::Expr)
     new_args = map(x -> simplify(x), ex.args[2:end])
     # Special Case: simplify(:(x ^ 0)) == 1
-    if isequal(new_args[2], 0)
+    if new_args[2] == 0
         return 1
     # Special Case: simplify(:(x ^ 1)) == x
-    elseif isequal(new_args[2], 1)
+    elseif new_args[2] == 1
         return new_args[1]
     # Special Case: simplify(:(0 ^ x)) == 0
-    elseif isequal(new_args[1], 0)
+    elseif new_args[1] == 0
         return 0
     # Special Case: simplify(:(1 ^ x)) == 1
-    elseif isequal(new_args[1], 1)
+    elseif new_args[1] == 1
         return 1
     else
         unshift!(new_args, :^)
         return Expr(:call, new_args...)
     end
 end
-
-simplify_sum(ex::SymbolicExpression) = simplify_sum(ex.ex)
-simplify_substraction(ex::SymbolicExpression) = simplify_substraction(ex.ex)
-simplify_product(ex::SymbolicExpression) = simplify_product(ex.ex)
-simplify_quotient(ex::SymbolicExpression) = simplify_quotient(ex.ex)
-simplify_power(ex::SymbolicExpression) = simplify_power(ex.ex)
 
 # Lookup table of simplification rules
 simplify_lookup = {
@@ -109,7 +103,7 @@ function simplify(ex::Expr)
         end
         if has(simplify_lookup, ex.args[1])
             new_ex = simplify_lookup[ex.args[1]](ex)
-            while !isequal(new_ex, ex)
+            while new_ex != ex
                 new_ex, ex = simplify(new_ex), new_ex
             end
             return new_ex
@@ -125,7 +119,7 @@ end
 # d/dx c = 0
 differentiate(x::Number, target::SymbolicVariable) = 0
 
-# The Symbol Rule
+# The SymbolicVariable Rule
 # d/dx x = 1
 # d/dx y = 0
 function differentiate(s::SymbolicVariable, target::SymbolicVariable)
@@ -227,7 +221,7 @@ function differentiate_power(ex::Expr, target::SymbolicVariable)
     if ex.head != :call || ex.args[1] != :^
         error("Not a valid power call: $(ex)")
     end
-    if isequal(ex.args[2], target) && !isequal(ex.args[3], target)
+    if ex.args[2] == target && ex.args[3] != target
         return Expr(:call,
                     :*,
                     ex.args[3],
@@ -238,7 +232,7 @@ function differentiate_power(ex::Expr, target::SymbolicVariable)
                               :-,
                               ex.args[3],
                               1)))
-    elseif isequal(ex.args[2], target) && isequal(ex.args[3], target)
+    elseif ex.args[2] == target && ex.args[3] == target
         return Expr(:call,
                     :*,
                     Expr(:call,
@@ -250,7 +244,7 @@ function differentiate_power(ex::Expr, target::SymbolicVariable)
                          Expr(:call,
                               :log,
                               target)))
-    elseif !isequal(ex.args[2], target) && !isequal(ex.args[3], target)
+    elseif ex.args[2] != target && ex.args[3] != target
         return ex
     else
         return Expr(:call,
@@ -384,11 +378,6 @@ end
 function differentiate(s::String)
     differentiate(parse(s), :x)
 end
-
-function differentiate(s::SymbolicExpression, wrt)
-    differentiate(s.ex, wrt)
-end
-
 
 # Full out differentation returns an immediately evaluable Julia function
 

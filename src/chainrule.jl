@@ -26,8 +26,6 @@ chainRule(ex::SymbolicVariable, wrt::SymbolicVariable) = (ex == wrt) ? 1 : 0
 
 chainRule(ex::Number, wrt::SymbolicVariable) = 0
 
-chainRule(ex::SymbolicExpression, wrt) = chainRule(ex.ex, wrt)  # return an Expr or a SymbolicExpression??
-
 function chainRule(ex::Expr,wrt)
     if ex.head != :call
         error("Unrecognized expression $ex")

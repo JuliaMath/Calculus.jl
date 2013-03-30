@@ -58,16 +58,24 @@
 x = BasicVariable(:x)
 y = BasicVariable(:y)
 
-@assert isequal(x + y, SymbolicExpression(:($x + $y)))
-@assert isequal(differentiate(3 * x, x), 3)
+@assert isequal(@sexpr(x + y), :($x + $y))
+@assert isequal(differentiate(@sexpr(3 * x), x), 3)
 @assert isequal(differentiate(:(sin(sin(x))), :x), :(*(cos(sin(x)),cos(x))))
-@assert isequal(differentiate(sin(sin(x)), x), :(*(cos(sin($x)),cos($x))))
+@assert isequal(differentiate(@sexpr(sin(sin(x))), x), :(*(cos(sin($x)),cos($x))))
 
 #
 # Chain rule
 #
 
-@assert isequal(chainRule(3 * x, x), :(1*3))
+@assert isequal(chainRule(@sexpr(3 * x), x), :(1*3))
 @assert isequal(chainRule(:(sin(sin(x))), :x), :(*(*(1,cos(x)),cos(sin(x)))))
-@assert isequal(chainRule(sin(sin(x)), x), :(*(*(1,cos($(x))),cos(sin($(x))))))
+@assert isequal(chainRule(@sexpr(sin(sin(x))), x), :(*(*(1,cos($(x))),cos(sin($(x))))))
 
+function testfun(x)
+    z = BasicVariable(:z)
+    chainRule(@sexpr(3*x + x^2*z), z)
+end
+
+@assert isequal(testfun(x), :(*(1,^($(x),2))))
+@assert isequal(testfun(3), :(*(1,^(3,2))))
+@assert isequal(testfun(@sexpr(x+y)), :(*(1,^(+($(x),$(y)),2))))
