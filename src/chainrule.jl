@@ -126,62 +126,45 @@ function chainRule(::SymbolParameter{:/}, args, wrt)
     end
 end
 
-# The Cos Rule:
-# d/dx cos(x) = -sin(x)
-function chainRule(::SymbolParameter{:cos}, args, wrt)
-    x = args[1]
-    xp = chainRule(x, wrt)
-    if x != 0
-        return :( -$xp * sin($x) )
-    else
-        return 0
-    end
-end
 
-# The Sin Rule:
-# d/dx sin(x) = cos(x)
-function chainRule(::SymbolParameter{:sin}, args, wrt)
-    x = args[1]
-    xp = chainRule(x, wrt)
-    if x != 0
-        return :( $xp * cos($x) )
-    else
-        return 0
-    end
-end
+derivative_rules = [
+    (:log,   :(  xp / x                         ))
+    (:log10, :(  xp / x / log(10)               ))
+    (:exp,   :(  xp * exp(x)                    ))
+    (:sin,   :(  xp * cos(x)                    ))
+    (:cos,   :( -xp * sin(x)                    ))
+    (:tan,   :(  xp * (1 + tan(x)^2)            ))
+    (:sec,   :(  xp * sec(x) * tan(x)           ))
+    (:csc,   :( -xp * csc(x) * cot(x)           ))
+    (:cot,   :( -xp * (1 + cot(x)^2)            ))
+    (:asin,  :(  xp / sqrt(1 - x^2)             ))
+    (:acos,  :( -xp / sqrt(1 - x^2)             ))
+    (:atan,  :( -xp / (1 + x^2)                 ))
+    (:asec,  :(  xp / abs(x) / sqrt(x^2 - 1)    ))
+    (:acsc,  :( -xp / abs(x) / sqrt(x^2 - 1)    ))
+    (:acot,  :( -xp / (1 + x^2)                 ))
+    (:sinh,  :(  xp * cosh(x)                   ))
+    (:cosh,  :(  xp * sinh(x)                   ))
+    (:tanh,  :(  xp * sech(x)^2                 ))
+    (:sech,  :( -xp * tanh(x) * sech(x)         ))
+    (:csch,  :( -xp * coth(x) * csch(x)         ))
+    (:coth,  :( -xp * csch(x)^2                 ))
+    (:asinh, :(  xp / sqrt(x^2 + 1)             ))
+    (:acosh, :(  xp / sqrt(x^2 - 1)             ))
+    (:atanh, :(  xp / (1 - x^2)                 ))
+    (:asech, :( -xp / x / sqrt(1 - x^2)         ))
+    (:acsch, :( -xp / abs(x) / sqrt(1 + x^2)    ))
+    (:acoth, :(  xp / (1 - x^2)                 ))
+]
 
-# The Tan Rule:
-# d/dx tan(x) = 1 + tan(x)^2
-function chainRule(::SymbolParameter{:tan}, args, wrt)
-    x = args[1]
-    xp = chainRule(x, wrt)
-    if x != 0
-        return :( $xp * (1 + tan($x)^2) )
-    else
-        return 0
-    end
-end
-
-# The Exp Rule:
-# d/dx exp(x) = exp(x)
-function chainRule(::SymbolParameter{:exp}, args, wrt)
-    x = args[1]
-    xp = chainRule(x, wrt)
-    if x != 0
-        return :( $xp * exp($x) )
-    else
-        return 0
-    end
-end
-
-# The Log Rule:
-# d/dx log(x) = 1 / x
-function chainRule(::SymbolParameter{:log}, args, wrt)
-    x = args[1]
-    xp = chainRule(x, wrt)
-    if x != 0
-        return :( $xp / $x )
-    else
-        return 0
+for (funsym, exp) in derivative_rules 
+    @eval function chainRule(::SymbolParameter{$(Meta.quot(funsym))}, args, wrt)
+        x = args[1]
+        xp = chainRule(x, wrt)
+        if x != 0
+            return @sexpr($exp)
+        else
+            return 0
+        end
     end
 end
