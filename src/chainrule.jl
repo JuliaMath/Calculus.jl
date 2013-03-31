@@ -1,18 +1,5 @@
 
-export SymbolParameter, chainRule
-
-#################################################################
-#
-# SymbolParameter
-#   used to be able to dispatch on the symbol representing a
-#   function
-#   
-#################################################################
-
-type SymbolParameter{T}
-end
-SymbolParameter(s::Symbol) = SymbolParameter{s}()
-
+export chainRule
 
 #################################################################
 #
@@ -30,7 +17,7 @@ function chainRule(ex::Expr,wrt)
     if ex.head != :call
         error("Unrecognized expression $ex")
     end
-    chainRule(SymbolParameter(ex.args[1]), ex.args[2:end], wrt)
+    simplify(chainRule(SymbolParameter(ex.args[1]), ex.args[2:end], wrt))
 end
 
 chainRule{T}(x::SymbolParameter{T}, args, wrt) = error("Derivative of function " * string(T) * " not supported")

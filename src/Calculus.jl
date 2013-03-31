@@ -58,6 +58,5 @@ module Calculus
     include("integrate.jl")
     include("abstractsymbolic.jl")
     include("chainrule.jl")
-    include("symbolic.jl")
     include("deparse.jl")
 end
