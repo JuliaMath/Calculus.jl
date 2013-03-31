@@ -1,33 +1,33 @@
 
-export chainRule
+export differentiate
 
 #################################################################
 #
-# chainRule for differentiation
-#   based on this code, I think by Miles Lubin:
+# differentiate()
+#   based on John's differentiate and this code, I think by Miles Lubin:
 #     https://github.com/IainNZ/NLTester/blob/master/julia/nlp.jl#L74
 #   
 #################################################################
 
-chainRule(ex::SymbolicVariable, wrt::SymbolicVariable) = (ex == wrt) ? 1 : 0
+differentiate(ex::SymbolicVariable, wrt::SymbolicVariable) = (ex == wrt) ? 1 : 0
 
-chainRule(ex::Number, wrt::SymbolicVariable) = 0
+differentiate(ex::Number, wrt::SymbolicVariable) = 0
 
-function chainRule(ex::Expr,wrt)
+function differentiate(ex::Expr,wrt)
     if ex.head != :call
         error("Unrecognized expression $ex")
     end
-    simplify(chainRule(SymbolParameter(ex.args[1]), ex.args[2:end], wrt))
+    simplify(differentiate(SymbolParameter(ex.args[1]), ex.args[2:end], wrt))
 end
 
-chainRule{T}(x::SymbolParameter{T}, args, wrt) = error("Derivative of function " * string(T) * " not supported")
+differentiate{T}(x::SymbolParameter{T}, args, wrt) = error("Derivative of function " * string(T) * " not supported")
 
 # The Power Rule:
-function chainRule(::SymbolParameter{:^}, args, wrt)
+function differentiate(::SymbolParameter{:^}, args, wrt)
     x = args[1]
     y = args[2]
-    xp = chainRule(x, wrt)
-    yp = chainRule(y, wrt)
+    xp = differentiate(x, wrt)
+    yp = differentiate(y, wrt)
     if xp == 0 && yp == 0
         return 0
     elseif xp != 0 && yp == 0
@@ -37,10 +37,10 @@ function chainRule(::SymbolParameter{:^}, args, wrt)
     end
 end
 
-function chainRule(::SymbolParameter{:+}, args, wrt)
+function differentiate(::SymbolParameter{:+}, args, wrt)
     termdiffs = {:+}
     for y in args
-        x = chainRule(y, wrt)
+        x = differentiate(y, wrt)
         if x != 0
             push!(termdiffs, x)
         end
@@ -54,13 +54,13 @@ function chainRule(::SymbolParameter{:+}, args, wrt)
     end
 end
 
-function chainRule(::SymbolParameter{:-}, args, wrt)
+function differentiate(::SymbolParameter{:-}, args, wrt)
     termdiffs = {:-}
     # first term is special, can't be dropped
-    term1 = chainRule(args[1], wrt)
+    term1 = differentiate(args[1], wrt)
     push!(termdiffs, term1)
     for y in args[2:end]
-        x = chainRule(y, wrt)
+        x = differentiate(y, wrt)
         if x != 0
             push!(termdiffs, x)
         end
@@ -78,14 +78,14 @@ end
 # The Product Rule
 # d/dx (f * g) = (d/dx f) * g + f * (d/dx g)
 # d/dx (f * g * h) = (d/dx f) * g * h + f * (d/dx g) * h + ...
-function chainRule(::SymbolParameter{:*}, args, wrt)
+function differentiate(::SymbolParameter{:*}, args, wrt)
     n = length(args)
     res_args = Array(Any, n)
     for i in 1:n
        new_args = Array(Any, n)
        for j in 1:n
            if j == i
-               new_args[j] = chainRule(args[j], wrt)
+               new_args[j] = differentiate(args[j], wrt)
            else
                new_args[j] = args[j]
            end
@@ -97,11 +97,11 @@ end
 
 # The Quotient Rule
 # d/dx (f / g) = ((d/dx f) * g - f * (d/dx g)) / g^2
-function chainRule(::SymbolParameter{:/}, args, wrt)
+function differentiate(::SymbolParameter{:/}, args, wrt)
     x = args[1]
     y = args[2]
-    xp = chainRule(x, wrt)
-    yp = chainRule(y, wrt)
+    xp = differentiate(x, wrt)
+    yp = differentiate(y, wrt)
     if xp == 0 && yp == 0
         return 0
     elseif xp == 0
@@ -145,9 +145,9 @@ derivative_rules = [
 ]
 
 for (funsym, exp) in derivative_rules 
-    @eval function chainRule(::SymbolParameter{$(Meta.quot(funsym))}, args, wrt)
+    @eval function differentiate(::SymbolParameter{$(Meta.quot(funsym))}, args, wrt)
         x = args[1]
-        xp = chainRule(x, wrt)
+        xp = differentiate(x, wrt)
         if x != 0
             return @sexpr($exp)
         else

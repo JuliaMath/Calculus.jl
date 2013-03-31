@@ -56,7 +56,7 @@ module Calculus
     include("derivative.jl")
     include("check_derivative.jl")
     include("integrate.jl")
-    include("abstractsymbolic.jl")
-    include("chainrule.jl")
+    include("symbolic.jl")
+    include("differentiate.jl")
     include("deparse.jl")
 end
