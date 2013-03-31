@@ -1,41 +1,140 @@
+
+export Symbolic, AbstractVariable, SymbolicVariable, BasicVariable, processExpr, @sexpr
+export SymbolParameter, simplify 
+import Base.show, Base.(==)
+
+#################################################################
+#
+# Symbolic types
+#   Symbolic - top of the tree
+#   AbstractVariable - inherit from this for custom symbolic
+#                      variable types
+#   SymbolicVariable - use this in method argument typing
+#
+#################################################################
+
+abstract Symbolic
+abstract AbstractVariable <: Symbolic
+typealias SymbolicVariable Union(Symbol, AbstractVariable)
+
+
+#################################################################
+#
+# BasicVariable - an example to use during testing
+#
+#################################################################
+
+type BasicVariable <: AbstractVariable
+    sym::Symbol
+end
+# The following is probably too plain.
+show(io::IO, x::BasicVariable) = print(io, x.sym)
+(==)(x::BasicVariable, y::BasicVariable) = x.sym == y.sym
+
+
+#################################################################
+#
+# @sexpr - return an Expr with variables spliced in
+# processExpr - do the Expr splicing
+#
+#################################################################
+
+function processExpr(x::Expr)
+    if x.head == :call
+        quoted = Expr(:quote,x.args[1])
+        code = :(Expr(:call,$quoted))
+        for y in x.args[2:end]
+            push!(code.args,processExpr(y))
+        end
+        return code
+    else
+        return x
+    end
+end
+
+processExpr(x::Any) = x
+
+macro sexpr(x)
+    esc(processExpr(x))
+end
+
+
+#################################################################
+#
+# SymbolParameter
+#   used to be able to dispatch on the symbol representing a
+#   function
+#   
+#################################################################
+
+type SymbolParameter{T}
+end
+SymbolParameter(s::Symbol) = SymbolParameter{s}()
+
+
+
+#################################################################
+#
+# simplify()
+#   
+#################################################################
+
+
 # Numbers and symbols can't be simplified further
+simplify(x) = x
 simplify(n::Number) = n
 simplify(s::SymbolicVariable) = s
 
+# The default is no simplification.
+simplify{T}(x::SymbolParameter{T}, args) = Expr(:call, T, args...)
+
+function simplify(ex::Expr)
+    if ex.head != :call
+        return ex
+    end
+    if all(map(a -> isa(a, Number), ex.args[2:end]))
+        return eval(ex)
+    end
+    new_ex = simplify(SymbolParameter(ex.args[1]), ex.args[2:end])
+    while new_ex != ex
+        new_ex, ex = simplify(new_ex), new_ex
+    end
+    return new_ex
+end
+
+
 # Handles all lengths for ex.args
 # Removes any 0's in a sum
-function simplify_sum(ex::Expr)
-    new_args = map(x -> simplify(x), filter(x -> x != 0, ex.args[2:end]))
+function simplify(::SymbolParameter{:+}, args)
+    new_args = map(x -> simplify(x), filter(x -> x != 0, args))
     if length(new_args) == 0
         return 0
     # Special Case: simplify(:(+x)) == x
     elseif length(new_args) == 1
         return new_args[1]
     else
-        unshift!(new_args, :+)
-        return Expr(:call, new_args...)
+        return Expr(:call, :+, new_args...)
     end
 end
 
 # Assumes length(ex.args) == 3
 # Removes any 0's in a subtraction
-function simplify_subtraction(ex::Expr)
-    new_args = map(x -> simplify(x), filter(x -> x != 0, ex.args[2:end]))
+function simplify(::SymbolParameter{:-}, args)
+    new_args = map(x -> simplify(x), filter(x -> x != 0, args))
     if length(new_args) == 0
         return 0
     # Special Case: simplify(:(x - x)) == 0
     elseif length(new_args) == 2 && new_args[1] == new_args[2]
         return 0
     else
-        unshift!(new_args, :-)
-        return Expr(:call, new_args...)
+        return Expr(:call, :-, new_args...)
     end
 end
 
 # Handles all lengths for ex.args
 # Removes any 1's in a product
-function simplify_product(ex::Expr)
-    new_args = map(x -> simplify(x), filter(x -> x != 1, ex.args[2:end]))
+function simplify(::SymbolParameter{:*}, args)
+    new_args = map(x -> simplify(x), filter(x -> x != 1, args))
     if length(new_args) == 0
         return 1
     # Special Case: simplify(:(*x)) == x
@@ -45,14 +144,13 @@ function simplify_product(ex::Expr)
     elseif any(new_args .== 0)
         return 0
     else
-        unshift!(new_args, :*)
-        return Expr(:call, new_args...)
+        return Expr(:call, :*, new_args...)
     end
 end
 
 # Assumes length(ex.args) == 3
-function simplify_quotient(ex::Expr)
-    new_args = map(x -> simplify(x), ex.args[2:end])
+function simplify(::SymbolParameter{:/}, args)
+    new_args = map(x -> simplify(x), args)
     # Special Case: simplify(:(x / 1)) == x
     if new_args[2] == 1
         return new_args[1]
@@ -60,14 +158,13 @@ function simplify_quotient(ex::Expr)
     elseif new_args[1] == 0
         return 0
     else
-        unshift!(new_args, :/)
-        return Expr(:call, new_args...)
+        return Expr(:call, :/, new_args...)
     end
 end
 
 # Assumes length(ex.args) == 3
-function simplify_power(ex::Expr)
-    new_args = map(x -> simplify(x), ex.args[2:end])
+function simplify(::SymbolParameter{:^}, args)
+    new_args = map(x -> simplify(x), args)
     # Special Case: simplify(:(x ^ 0)) == 1
     if new_args[2] == 0
         return 1
@@ -81,315 +178,6 @@ function simplify_power(ex::Expr)
     elseif new_args[1] == 1
         return 1
     else
-        unshift!(new_args, :^)
-        return Expr(:call, new_args...)
+        return Expr(:call, :^, new_args...)
     end
-end
-
-# Lookup table of simplification rules
-simplify_lookup = {
-                    :+ => simplify_sum,
-                    :- => simplify_subtraction,
-                    :* => simplify_product,
-                    :/ => simplify_quotient,
-                    :^ => simplify_power
-                  }
-
-# The simplest form of an expression is a fixed point of simplify()
-function simplify(ex::Expr)
-    if ex.head == :call
-        if all(map(a -> isa(a, Number), ex.args[2:end]))
-            return eval(ex)
-        end
-        if has(simplify_lookup, ex.args[1])
-            new_ex = simplify_lookup[ex.args[1]](ex)
-            while new_ex != ex
-                new_ex, ex = simplify(new_ex), new_ex
-            end
-            return new_ex
-        else
-          return ex
-        end
-    else
-        return ex
-    end
-end
-
-# The Constant Rule
-# d/dx c = 0
-differentiate(x::Number, target::SymbolicVariable) = 0
-
-# The SymbolicVariable Rule
-# d/dx x = 1
-# d/dx y = 0
-function differentiate(s::SymbolicVariable, target::SymbolicVariable)
-    if s == target
-        return 1
-    else
-        return 0
-    end
-end
-
-# The Sum Rule for Unary and Binary +
-# d/dx +(f) = +(d/dx f)
-# d/dx (f + g) = d/dx f + d/dx g
-function differentiate_sum(ex::Expr, target::SymbolicVariable)
-    if ex.head != :call || ex.args[1] != :+
-        error("Not a valid sum call: $(ex)")
-    end
-    n = length(ex.args)
-    new_args = Array(Any, n)
-    new_args[1] = :+
-    for i in 2:n
-        new_args[i] = differentiate(ex.args[i], target)
-    end
-    return Expr(:call, new_args...)
-end
-
-# The Subtraction Rule for Unary and Binary -
-# d/dx -(f) = -(d/dx f)
-# d/dx (f - g) = d/dx f - d/dx g
-function differentiate_subtraction(ex::Expr, target::SymbolicVariable)
-    if ex.head != :call || ex.args[1] != :-
-        error("Not a valid subtraction call: $(ex)")
-    end
-    n = length(ex.args)
-    new_args = Array(Any, n)
-    new_args[1] = :-
-    for i in 2:n
-        new_args[i] = differentiate(ex.args[i], target)
-    end
-    return Expr(:call, new_args...)
-end
-
-# The Product Rule
-# d/dx (f * g) = (d/dx f) * g + f * (d/dx g)
-# d/dx (f * g * h) = (d/dx f) * g * h + f * (d/dx g) * h + ...
-function differentiate_product(ex::Expr, target::SymbolicVariable)
-    if ex.head != :call || ex.args[1] != :*
-        error("Not a valid product call: $(ex)")
-    end
-    n = length(ex.args)
-    res_args = Array(Any, n)
-    res_args[1] = :+
-    for i in 2:n
-       new_args = Array(Any, n)
-       new_args[1] = :*
-       for j in 2:n
-           if j == i
-               new_args[j] = differentiate(ex.args[j], target)
-           else
-               new_args[j] = ex.args[j]
-           end
-       end
-       res_args[i] = Expr(:call, new_args...)
-    end
-    return Expr(:call, res_args...)
-end
-
-# The Quotient Rule
-# d/dx (f / g) = ((d/dx f) * g - f * (d/dx g)) / g^2
-function differentiate_quotient(ex::Expr, target::SymbolicVariable)
-    if ex.head != :call || ex.args[1] != :/
-        error("Not a valid quotient call: $(ex)")
-    end
-    return Expr(:call,
-                :/,
-                Expr(:call,
-                     :-,
-                     Expr(:call,
-                          :*,
-                          differentiate(ex.args[2], target),
-                          ex.args[3]),
-                     Expr(:call,
-                          :*,
-                          ex.args[2],
-                          differentiate(ex.args[3], target))),
-                Expr(:call,
-                     :^,
-                     ex.args[3],
-                     2))
-end
-
-# The Power Rule:
-# Case 1: x^n <=> /dx x^n = n * x^(n - 1)
-# Case 2: x^x <=> d/dx x^x = x^x (log(x) + 1)
-# Case 3: n^n <=> d/dx n^n = 0
-# Case 4: n^x <=> n^x * log(n)
-# TODO: Handle general case for things like sin(x)^2
-function differentiate_power(ex::Expr, target::SymbolicVariable)
-    if ex.head != :call || ex.args[1] != :^
-        error("Not a valid power call: $(ex)")
-    end
-    if ex.args[2] == target && ex.args[3] != target
-        return Expr(:call,
-                    :*,
-                    ex.args[3],
-                    Expr(:call,
-                         :^,
-                         ex.args[2],
-                         Expr(:call,
-                              :-,
-                              ex.args[3],
-                              1)))
-    elseif ex.args[2] == target && ex.args[3] == target
-        return Expr(:call,
-                    :*,
-                    Expr(:call,
-                         :^,
-                         target,
-                         target),
-                    Expr(:call,
-                         :+,
-                         Expr(:call,
-                              :log,
-                              target)))
-    elseif ex.args[2] != target && ex.args[3] != target
-        return ex
-    else
-        return Expr(:call,
-                    :*,
-                    Expr(:call,
-                         :^,
-                         ex.args[2],
-                         ex.args[3]),
-                    Expr(:call,
-                         :log,
-                         ex.args[2]))
-    end
-end
-
-# The Sin Rule:
-# d/dx sin(x) = cos(x)
-function differentiate_sin(ex::Expr, target::SymbolicVariable)
-    if ex.head != :call || ex.args[1] != :sin
-        error("Not a valid sin call: $(ex)")
-    end
-    return Expr(:call,
-                :*,
-                Expr(:call, :cos, ex.args[2]),
-                differentiate(ex.args[2], target))
-end
-
-# The Cos Rule:
-# d/dx cos(x) = -sin(x)
-function differentiate_cos(ex::Expr, target::SymbolicVariable)
-    if ex.head != :call || ex.args[1] != :cos
-        error("Not a valid cos call: $(ex)")
-    end
-    return Expr(:call,
-                :*,
-                Expr(:call,
-                     :-,
-                     Expr(:call, :sin, ex.args[2])),
-                differentiate(ex.args[2], target))
-end
-
-# The Tan Rule:
-# d/dx tan(x) = 1 + tan(x)^2
-function differentiate_tan(ex::Expr, target::SymbolicVariable)
-    if ex.head != :call || ex.args[1] != :tan
-        error("Not a valid tan call: $(ex)")
-    end
-    return Expr(:call,
-                :*,
-                Expr(:call,
-                     :+,
-                     1,
-                     Expr(:call,
-                          :^,
-                          Expr(:call, :tan, ex.args[2]),
-                          2)),
-                differentiate(ex.args[2], target))
-end
-
-# The Exp Rule:
-# d/dx exp(x) = exp(x)
-function differentiate_exp(ex::Expr, target::SymbolicVariable)
-    if ex.head != :call || ex.args[1] != :exp
-        error("Not a valid exp call: $(ex)")
-    end
-    return Expr(:call,
-                :*,
-                Expr(:call, :exp, ex.args[2]),
-                differentiate(ex.args[2], target))
-end
-
-# The Log Rule:
-# d/dx log(x) = 1 / x
-function differentiate_log(ex::Expr, target::SymbolicVariable)
-    if ex.head != :call || ex.args[1] != :log
-        error("Not a valid log call: $(ex)")
-    end
-    return Expr(:call,
-                :*,
-                Expr(:call, :/, 1, ex.args[2]),
-                differentiate(ex.args[2], target))
-end
-
-# Lookup table of differentation rules
-differentiate_lookup = {
-                          :+ => differentiate_sum,
-                          :- => differentiate_subtraction,
-                          :* => differentiate_product,
-                          :/ => differentiate_quotient,
-                          :^ => differentiate_power,
-                          :sin => differentiate_sin,
-                          :cos => differentiate_cos,
-                          :tan => differentiate_tan,
-                          :exp => differentiate_exp,
-                          :log => differentiate_log
-                       }
-
-function differentiate(ex::Expr, target::SymbolicVariable)
-    if ex.head == :call
-        if has(differentiate_lookup, ex.args[1])
-            return simplify(differentiate_lookup[ex.args[1]](ex, target))
-        else
-            error("Don't know how to differentiate $(ex.args[1])")
-        end
-    else
-        return simplify(differentiate(ex.head))
-    end
-end
-function differentiate(ex::Expr, targets::Vector{SymbolicVariable})
-    n = length(targets)
-    exprs = Array(Expr, n)
-    for i in 1:n
-        exprs[i] = differentiate(ex, targets[i])
-    end
-    return exprs
-end
-
-differentiate(ex::Expr) = differentiate(ex, :x)
-
-function differentiate(s::String, target::SymbolicVariable)
-    differentiate(parse(s), target)
-end
-function differentiate(s::String, targets::Vector{SymbolicVariable})
-    differentiate(parse(s), targets)
-end
-function differentiate(s::String, target::String)
-    differentiate(parse(s), symbol(target))
-end
-function differentiate{T <: String}(s::String, targets::Vector{T})
-    differentiate(parse(s), map(target -> symbol(target), targets))
-end
-function differentiate(s::String)
-    differentiate(parse(s), :x)
-end
-
-# Full out differentation returns an immediately evaluable Julia function
-
-function derivative(ex::Expr, target::SymbolicVariable)
-    function f(x)
-        d_ex = differentiate(ex, target)
-        return @eval $d_ex
-    end
-    return f
-end
-
-function derivative(ex::Expr, target::SymbolicVariable, x::Any)
-    d_ex = differentiate(ex, target)
-    return @eval $d_ex
 end
