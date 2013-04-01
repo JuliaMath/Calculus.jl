@@ -185,7 +185,7 @@ for (funsym, exp) in derivative_rules
     @eval function differentiate(::SymbolParameter{$(Meta.quot(funsym))}, args, wrt)
         x = args[1]
         xp = differentiate(x, wrt)
-        if x != 0
+        if xp != 0
             return @sexpr($exp)
         else
             return 0
@@ -208,7 +208,7 @@ for (funsym, exp) in derivative_rules_bessel
         nu = args[1]
         x = args[2]
         xp = differentiate(x, wrt)
-        if x != 0
+        if xp != 0
             return @sexpr($exp)
         else
             return 0
@@ -222,3 +222,32 @@ end
 ## atan2
 ## hypot 
 ## beta, lbeta, eta, zeta, digamma
+
+function differentiate(ex::Expr, targets::Vector{Symbol})
+    n = length(targets)
+    exprs = Array(Expr, n)
+    for i in 1:n
+        exprs[i] = differentiate(ex, targets[i])
+    end
+    return exprs
+end
+
+
+differentiate(ex::Expr) = differentiate(ex, :x)
+
+function differentiate(s::String, target::Symbol)
+    differentiate(parse(s), target)
+end
+function differentiate(s::String, targets::Vector{Symbol})
+    differentiate(parse(s), targets)
+end
+function differentiate(s::String, target::String)
+    differentiate(parse(s), symbol(target))
+end
+function differentiate{T <: String}(s::String, targets::Vector{T})
+    differentiate(parse(s), map(target -> symbol(target), targets))
+end
+function differentiate(s::String)
+    differentiate(parse(s), :x)
+end
+
