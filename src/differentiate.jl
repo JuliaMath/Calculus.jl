@@ -115,33 +115,70 @@ end
 
 
 derivative_rules = [
-    (:log,   :(  xp / x                         ))
-    (:log10, :(  xp / x / log(10)               ))
-    (:exp,   :(  xp * exp(x)                    ))
-    (:sin,   :(  xp * cos(x)                    ))
-    (:cos,   :( -xp * sin(x)                    ))
-    (:tan,   :(  xp * (1 + tan(x)^2)            ))
-    (:sec,   :(  xp * sec(x) * tan(x)           ))
-    (:csc,   :( -xp * csc(x) * cot(x)           ))
-    (:cot,   :( -xp * (1 + cot(x)^2)            ))
-    (:asin,  :(  xp / sqrt(1 - x^2)             ))
-    (:acos,  :( -xp / sqrt(1 - x^2)             ))
-    (:atan,  :( -xp / (1 + x^2)                 ))
-    (:asec,  :(  xp / abs(x) / sqrt(x^2 - 1)    ))
-    (:acsc,  :( -xp / abs(x) / sqrt(x^2 - 1)    ))
-    (:acot,  :( -xp / (1 + x^2)                 ))
-    (:sinh,  :(  xp * cosh(x)                   ))
-    (:cosh,  :(  xp * sinh(x)                   ))
-    (:tanh,  :(  xp * sech(x)^2                 ))
-    (:sech,  :( -xp * tanh(x) * sech(x)         ))
-    (:csch,  :( -xp * coth(x) * csch(x)         ))
-    (:coth,  :( -xp * csch(x)^2                 ))
-    (:asinh, :(  xp / sqrt(x^2 + 1)             ))
-    (:acosh, :(  xp / sqrt(x^2 - 1)             ))
-    (:atanh, :(  xp / (1 - x^2)                 ))
-    (:asech, :( -xp / x / sqrt(1 - x^2)         ))
-    (:acsch, :( -xp / abs(x) / sqrt(1 + x^2)    ))
-    (:acoth, :(  xp / (1 - x^2)                 ))
+    ( :sqrt,        :(  xp / 2 / sqrt(x)                         ))
+    ( :cbrt,        :(  xp / 3 / cbrt(x)^2                       ))
+    ( :square,      :(  xp * 2 * x                               ))
+    ( :log,         :(  xp / x                                   ))
+    ( :log10,       :(  xp / x / log(10)                         ))
+    ( :log2,        :(  xp / x / log(2)                          ))
+    ( :log1p,       :(  xp / (x + 1)                             ))
+    ( :exp,         :(  xp * exp(x)                              ))
+    ( :exp2,        :(  xp * log(2) * exp2(x)                    ))
+    ( :expm1,       :(  xp * exp(x)                              ))
+    ( :sin,         :(  xp * cos(x)                              ))
+    ( :cos,         :( -xp * sin(x)                              ))
+    ( :tan,         :(  xp * (1 + tan(x)^2)                      ))
+    ( :sec,         :(  xp * sec(x) * tan(x)                     ))
+    ( :csc,         :( -xp * csc(x) * cot(x)                     ))
+    ( :cot,         :( -xp * (1 + cot(x)^2)                      ))
+    ( :sind,        :(  xp * cosd(x)                             ))
+    ( :cosd,        :( -xp * sind(x)                             ))
+    ( :tand,        :(  xp * (1 + tand(x)^2)                     ))
+    ( :secd,        :(  xp * secd(x) * tand(x)                   ))
+    ( :cscd,        :( -xp * cscd(x) * cotd(x)                   ))
+    ( :cotd,        :( -xp * (1 + cotd(x)^2)                     ))
+    ( :asin,        :(  xp / sqrt(1 - x^2)                       ))
+    ( :acos,        :( -xp / sqrt(1 - x^2)                       ))
+    ( :atan,        :(  xp / (1 + x^2)                           ))
+    ( :asec,        :(  xp / abs(x) / sqrt(x^2 - 1)              ))
+    ( :acsc,        :( -xp / abs(x) / sqrt(x^2 - 1)              ))
+    ( :acot,        :( -xp / (1 + x^2)                           ))
+    ( :asind,       :(  xp * 180 / pi / sqrt(1 - x^2)            ))
+    ( :acosd,       :( -xp * 180 / pi / sqrt(1 - x^2)            ))
+    ( :atand,       :(  xp * 180 / pi / (1 + x^2)                ))
+    ( :asecd,       :(  xp * 180 / pi / abs(x) / sqrt(x^2 - 1)   ))
+    ( :acscd,       :( -xp * 180 / pi / abs(x) / sqrt(x^2 - 1)   ))
+    ( :acotd,       :( -xp * 180 / pi / (1 + x^2)                ))
+    ( :sinh,        :(  xp * cosh(x)                             ))
+    ( :cosh,        :(  xp * sinh(x)                             ))
+    ( :tanh,        :(  xp * sech(x)^2                           ))
+    ( :sech,        :( -xp * tanh(x) * sech(x)                   ))
+    ( :csch,        :( -xp * coth(x) * csch(x)                   ))
+    ( :coth,        :( -xp * csch(x)^2                           ))
+    ( :asinh,       :(  xp / sqrt(x^2 + 1)                       ))
+    ( :acosh,       :(  xp / sqrt(x^2 - 1)                       ))
+    ( :atanh,       :(  xp / (1 - x^2)                           ))
+    ( :asech,       :( -xp / x / sqrt(1 - x^2)                   ))
+    ( :acsch,       :( -xp / abs(x) / sqrt(1 + x^2)              ))
+    ( :acoth,       :(  xp / (1 - x^2)                           ))
+    ( :erf,         :(  xp * 2 * exp(-square(x)) / sqrt(pi)      ))
+    ( :erfc,        :( -xp * 2 * exp(-square(x)) / sqrt(pi)      ))
+    ( :erfi,        :(  xp * 2 * exp(square(x)) / sqrt(pi)       ))
+    ( :gamma,       :(  xp * digamma(x) * gamma(x)               ))
+    ( :lgamma,      :(  xp * digamma(x)                          ))
+    ( :airy,        :(  xp * airyprime(x)                        ))  # note: only covers the 1-arg version
+    ( :airyprime,   :(  xp * airy(2, x)                          ))
+    ( :airyai,      :(  xp * airyaiprime(x)                      ))
+    ( :airybi,      :(  xp * airybiprime(x)                      ))
+    ( :airyaiprime, :(  xp * x * airyai(x)                       ))
+    ( :airybiprime, :(  xp * x * airybi(x)                       ))
+    ( :besselj0,    :( -xp * besselj1(x)                         ))
+    ( :besselj1,    :(  xp * (besselj0(x) - besselj(2, x)) / 2   ))
+    ( :bessely0,    :( -xp * bessely1(x)                         ))
+    ( :bessely1,    :(  xp * (bessely0(x) - bessely(2, x)) / 2   ))
+    ## ( :erfcx,   :(  xp * (2 * x * erfcx(x) - 2 / sqrt(pi))   ))  # uncertain
+    ## ( :dawson,  :(  xp * (1 - 2x * dawson(x))                ))  # uncertain
+
 ]
 
 for (funsym, exp) in derivative_rules 
@@ -155,3 +192,33 @@ for (funsym, exp) in derivative_rules
         end
     end
 end
+
+derivative_rules_bessel = [
+    ( :besselj,    :(  xp * (besselj(nu - 1, x) - besselj(nu + 1, x)) / 2   ))
+    ( :besseli,    :(  xp * (besseli(nu - 1, x) + besseli(nu + 1, x)) / 2   ))
+    ( :bessely,    :(  xp * (bessely(nu - 1, x) - bessely(nu + 1, x)) / 2   ))
+    ( :besselk,    :( -xp * (besselk(nu - 1, x) + besselk(nu + 1, x)) / 2   ))
+    ( :hankelh1,   :(  xp * (hankelh1(nu - 1, x) - hankelh1(nu + 1, x)) / 2 ))
+    ( :hankelh2,   :(  xp * (hankelh2(nu - 1, x) - hankelh2(nu + 1, x)) / 2 ))
+]
+
+# 2-argument bessel functions
+for (funsym, exp) in derivative_rules_bessel 
+    @eval function differentiate(::SymbolParameter{$(Meta.quot(funsym))}, args, wrt)
+        nu = args[1]
+        x = args[2]
+        xp = differentiate(x, wrt)
+        if x != 0
+            return @sexpr($exp)
+        else
+            return 0
+        end
+    end
+end
+
+### Other functions from julia/base/math.jl we might want to define
+### derivatives for. Some have two arguments.
+
+## atan2
+## hypot 
+## beta, lbeta, eta, zeta, digamma

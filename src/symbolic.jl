@@ -85,8 +85,8 @@ simplify(x) = x
 simplify(n::Number) = n
 simplify(s::SymbolicVariable) = s
 
-# The default is no simplification.
-simplify{T}(x::SymbolParameter{T}, args) = Expr(:call, T, args...)
+# The default is just to simplify arguments.
+simplify{T}(x::SymbolParameter{T}, args) = Expr(:call, T, map(x -> simplify(x), args)...)
 
 function simplify(ex::Expr)
     if ex.head != :call
