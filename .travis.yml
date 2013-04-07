@@ -1,0 +1,20 @@
+language: cpp
+compiler: 
+    - gcc
+notifications:
+    email: false
+before_install:
+    - sudo apt-get update -qq -y
+    - sudo apt-get install zlib1g-dev
+    - sudo add-apt-repository ppa:staticfloat/julia-deps -y
+    - sudo add-apt-repository ppa:staticfloat/julianightlies -y
+    - sudo apt-get update -qq -y
+    - sudo apt-get install patchelf gfortran llvm-3.2-dev libsuitesparse-dev libncurses5-dev libopenblas-dev liblapack-dev libarpack2-dev libfftw3-dev libgmp-dev libpcre3-dev libunwind7-dev libreadline-dev libdouble-conversion-dev libopenlibm-dev librmath-dev -y
+    - sudo apt-get install julia
+    - git config --global user.name "Dummy Travis User"
+    - git config --global user.email "travis@example.net"
+script:
+    - julia -e 'versioninfo(); Pkg.init();'
+    - mkdir -p ~/.julia/Calculus
+    - cp -R ./* ~/.julia/Calculus/
+    - julia ~/.julia/Calculus/run_tests.jl
