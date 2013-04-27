@@ -34,16 +34,20 @@ function finite_difference{T <: Number}(f::Function,
     if dtype == :forward
         epsilon = sqrt(eps(max(one(T), abs(x))))
         xplusdx = x + epsilon
-        return (f(xplusdx) - f(x)) / (xplusdx - x) # use machine-representable numbers
+        # use machine-representable numbers
+        return (f(xplusdx) - f(x)) / epsilon
     elseif dtype == :central
         epsilon = cbrt(eps(max(one(T), abs(x))))
         xplusdx, xminusdx = x + epsilon, x - epsilon
-        return (f(xplusdx) - f(xminusdx)) / (xplusdx - xminusdx)
+        # Is it better to do 2 * epsilon or xplusdx - xminusdx?
+        return (f(xplusdx) - f(xminusdx)) / (2 * epsilon)
     else
         error("dtype must be :forward or :central")
     end
 end
-finite_difference(f::Function, x::Number) = finite_difference(f, x, :central)
+function finite_difference(f::Function, x::Number)
+    finite_difference(f, x, :central)
+end
 
 ##############################################################################
 ##
@@ -53,7 +57,7 @@ finite_difference(f::Function, x::Number) = finite_difference(f, x, :central)
 
 function finite_difference!{S <: Number, T <: Number}(f::Function,
                                                       x::Vector{S},
-                                                      differential::Vector{T},
+                                                      g::Vector{T},
                                                       dtype::Symbol)
     # What is the dimension of x?
     n = length(x)
@@ -70,7 +74,7 @@ function finite_difference!{S <: Number, T <: Number}(f::Function,
             x[i] = oldx + epsilon
             f_xplusdx = f(x)
             x[i] = oldx
-            differential[i] = (f_xplusdx - f_x) / epsilon
+            g[i] = (f_xplusdx - f_x) / epsilon
         end
     elseif dtype == :central
         for i = 1:n
@@ -81,23 +85,25 @@ function finite_difference!{S <: Number, T <: Number}(f::Function,
             x[i] = oldx - epsilon
             f_xminusdx = f(x)
             x[i] = oldx
-            differential[i] = (f_xplusdx - f_xminusdx) / (2 * epsilon)
+            g[i] = (f_xplusdx - f_xminusdx) / (2 * epsilon)
         end
     else
         error("dtype must be :forward or :central")
     end
 
-    # Return the estimated gradient.
-    return differential
+    return
 end
 function finite_difference{T <: Number}(f::Function,
                                         x::Vector{T},
                                         dtype::Symbol)
-    # What is the dimension of x?
-    n = length(x)
-    differential = Array(Float64, n)
-    finite_difference!(f, x, differential, dtype)
-    return differential
+    # Allocate memory for gradient
+    g = Array(Float64, length(x))
+
+    # Mutate allocated gradient
+    finite_difference!(f, x, g, dtype)
+
+    # Return mutated gradient
+    return g
 end
 function finite_difference{T <: Number}(f::Function, x::Vector{T})
     finite_difference(f, x, :central)
@@ -109,39 +115,57 @@ end
 ##
 ##############################################################################
 
-# TODO: Add mutating version
-function finite_difference_jacobian{T <: Number}(f::Function, x::Vector{T}, dtype::Symbol)
+function finite_difference_jacobian!{R <: Number,
+                                     S <: Number,
+                                     T <: Number}(f::Function,
+                                                  x::Vector{R},
+                                                  f_x::Vector{S},
+                                                  J::Array{T},
+                                                  dtype::Symbol)
     # What is the dimension of x?
-    n = length(x)
-
-    # Establish a baseline for f_x
-    f_x = f(x)
-
-    # Initialize the Jacobian matrix
-    J = zeros(length(f_x), n)
+    m, n = size(J)
 
     # Iterate over each dimension of the gradient separately.
     if dtype == :forward
-        xplusdx = copy(x)
         for i = 1:n
             epsilon = sqrt(eps(max(one(T), abs(x[i]))))
-            xplusdx[i] = x[i] + epsilon
-            J[:, i] = (f(xplusdx) - f_x) / (xplusdx[i] - x[i])
-            xplusdx[i] = x[i]
+            oldx = x[i]
+            x[i] = oldx + epsilon
+            f_xplusdx = f(x)
+            x[i] = oldx
+            J[:, i] = (f_xplusdx - f_x) / epsilon
         end
-        return J
     elseif dtype == :central
-        xplusdx, xminusdx = copy(x), copy(x)
         for i = 1:n
             epsilon = cbrt(eps(max(one(T), abs(x[i]))))
-            xplusdx[i], xminusdx[i] = x[i] + epsilon, x[i] - epsilon
-            J[:, i] = (f(xplusdx) - f(xminusdx)) / (xplusdx[i] - xminusdx[i])
-            xplusdx[i], xminusdx[i] = x[i], x[i]
+            oldx = x[i]
+            x[i] = oldx + epsilon
+            f_xplusdx = f(x)
+            x[i] = oldx - epsilon
+            f_xminusdx = f(x)
+            x[i] = oldx
+            J[:, i] = (f_xplusdx - f_xminusdx) / (2 * epsilon)
         end
-        return J
     else
         error("dtype must :forward or :central")
     end
+
+    return
+end
+function finite_difference_jacobian{T <: Number}(f::Function,
+                                                 x::Vector{T},
+                                                 dtype::Symbol)
+    # Establish a baseline for f_x
+    f_x = f(x)
+
+    # Allocate space for the Jacobian matrix
+    J = zeros(length(f_x), length(x))
+
+    # Compute Jacobian inside allocated matrix
+    finite_difference_jacobian!(f, x, f_x, J, dtype)
+
+    # Return Jacobian
+    return J
 end
 
 ##############################################################################
@@ -154,9 +178,17 @@ function finite_difference_hessian{T <: Number}(f::Function, x::T)
     epsilon = eps(max(one(T), abs(x)))^(1/4)
     (f(x + epsilon) - 2*f(x) + f(x - epsilon))/epsilon^2
 end
-finite_difference_hessian(f::Function, g::Function, x::Number, dtype::Symbol) = finite_difference(g, x, dtype)
-finite_difference_hessian(f::Function, g::Function, x::Number) = finite_difference(g, x, :central)
-
+function finite_difference_hessian(f::Function,
+                                   g::Function,
+                                   x::Number,
+                                   dtype::Symbol)
+    finite_difference(g, x, dtype)
+end
+function finite_difference_hessian(f::Function,
+                                   g::Function,
+                                   x::Number)
+    finite_difference(g, x, :central)
+end
 
 ##############################################################################
 ##
@@ -164,15 +196,14 @@ finite_difference_hessian(f::Function, g::Function, x::Number) = finite_differen
 ##
 ##############################################################################
 
-# TODO: Add mutating version
-
-function finite_difference_hessian{T <: Number}(f::Function, x::Vector{T})
+function finite_difference_hessian!{S <: Number,
+                                    T <: Number}(f::Function,
+                                                 x::Vector{S},
+                                                 H::Array{T})
     # What is the dimension of x?
     n = length(x)
 
-    # Initialize an empty Hessian
-    H = Array(Float64, n, n)
-
+    # TODO: Remove all these copies
     xpp, xpm, xmp, xmm = copy(x), copy(x), copy(x), copy(x)
     fx = f(x)
     for i = 1:n
@@ -196,7 +227,20 @@ function finite_difference_hessian{T <: Number}(f::Function, x::Vector{T})
         xpp[i], xpm[i], xmp[i], xmm[i] = xi, xi, xi, xi
     end
     symmetrize!(H)
-    H
+end
+function finite_difference_hessian{T <: Number}(f::Function,
+                                                x::Vector{T})
+    # What is the dimension of x?
+    n = length(x)
+
+    # Allocate an empty Hessian
+    H = Array(Float64, n, n)
+
+    # Mutate the allocated Hessian
+    finite_difference_hessian!(f, x, H)
+
+    # Return the Hessian
+    return H
 end
 finite_difference_hessian{T}(f::Function, g::Function, x::Vector{T}, dtype::Symbol) = finite_difference_jacobian(g, x, dtype)
 finite_difference_hessian{T}(f::Function, g::Function, x::Vector{T}) = finite_difference_jacobian(g, x, :central)
