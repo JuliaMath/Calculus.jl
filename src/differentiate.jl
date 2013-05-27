@@ -22,10 +22,11 @@ end
 
 # a finite difference based on a symbolic expression, given a specific x to differentiate at
 function differentiate(ex::Expr, wrt::SymbolicVariable, atx::Float64)
-    ex = differentiate(ex)
-    eval(:($wrt = $atx))
-    return eval(ex)
-end
+    ex = differentiate(ex, wrt) # symbolic only
+    local fex = :(($wrt)->($ex))
+    local f = eval(fex)
+    return f(atx)
+end      
 
 differentiate{T}(x::SymbolParameter{T}, args, wrt) = error("Derivative of function " * string(T) * " not supported")
 
