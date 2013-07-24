@@ -30,7 +30,7 @@ function differentiate(::SymbolParameter{:^}, args, wrt)
     yp = differentiate(y, wrt)
     if xp == 0 && yp == 0
         return 0
-    elseif xp != 0 && yp == 0
+    elseif yp == 0
         return :( $y * $xp * ($x ^ ($y - 1)) )
     else
         return :( $x ^ $y * ($xp * $y / $x + $yp * log($x)) ) 
@@ -105,9 +105,9 @@ function differentiate(::SymbolParameter{:/}, args, wrt)
     if xp == 0 && yp == 0
         return 0
     elseif xp == 0
-        return :( -$yp * $x )
+        return :( -$yp * $x / $y^2 )
     elseif yp == 0
-        return :( $xp * $y )
+        return :( $xp / $y )
     else
         return :( ($xp * $y - $x * $yp) / $y^2 )
     end
