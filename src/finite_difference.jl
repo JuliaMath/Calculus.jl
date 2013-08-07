@@ -1,12 +1,5 @@
 ##############################################################################
 ##
-## TODO: dtype == :complex
-##       See minFunc code for examples of how this could be done
-##
-##############################################################################
-
-##############################################################################
-##
 ## Graveyard of Alternative Functions
 ##
 ## In Nodedal and Wright, epsilon was calculated as
@@ -24,13 +17,13 @@
 
 ##############################################################################
 ##
-## Derivative of f: R -> R
+## Derivative of f: C -> R
 ##
 ##############################################################################
 
 function finite_difference{T <: Number}(f::Function,
                                         x::T,
-                                        dtype::Symbol)
+                                        dtype::Symbol = :central)
     if dtype == :forward
         epsilon = sqrt(eps(max(one(T), abs(x))))
         xplusdx = x + epsilon
@@ -41,12 +34,13 @@ function finite_difference{T <: Number}(f::Function,
         xplusdx, xminusdx = x + epsilon, x - epsilon
         # Is it better to do 2 * epsilon or xplusdx - xminusdx?
         return (f(xplusdx) - f(xminusdx)) / (2 * epsilon)
+    elseif dtype == :complex
+        epsilon = eps(x)
+        xplusdx = x + epsilon * im
+        return imag(f(xplusdx)) / epsilon
     else
-        error("dtype must be :forward or :central")
+        error("dtype must be :forward, :central or :complex")
     end
-end
-function finite_difference(f::Function, x::Number)
-    finite_difference(f, x, :central)
 end
 
 ##############################################################################
@@ -95,7 +89,7 @@ function finite_difference!{S <: Number, T <: Number}(f::Function,
 end
 function finite_difference{T <: Number}(f::Function,
                                         x::Vector{T},
-                                        dtype::Symbol)
+                                        dtype::Symbol = :central)
     # Allocate memory for gradient
     g = Array(Float64, length(x))
 
@@ -104,9 +98,6 @@ function finite_difference{T <: Number}(f::Function,
 
     # Return mutated gradient
     return g
-end
-function finite_difference{T <: Number}(f::Function, x::Vector{T})
-    finite_difference(f, x, :central)
 end
 
 ##############################################################################
@@ -121,7 +112,7 @@ function finite_difference_jacobian!{R <: Number,
                                                   x::Vector{R},
                                                   f_x::Vector{S},
                                                   J::Array{T},
-                                                  dtype::Symbol)
+                                                  dtype::Symbol = :central)
     # What is the dimension of x?
     m, n = size(J)
 
@@ -154,7 +145,7 @@ function finite_difference_jacobian!{R <: Number,
 end
 function finite_difference_jacobian{T <: Number}(f::Function,
                                                  x::Vector{T},
-                                                 dtype::Symbol)
+                                                 dtype::Symbol = :central)
     # Establish a baseline for f_x
     f_x = f(x)
 
@@ -181,13 +172,8 @@ end
 function finite_difference_hessian(f::Function,
                                    g::Function,
                                    x::Number,
-                                   dtype::Symbol)
+                                   dtype::Symbol = :central)
     finite_difference(g, x, dtype)
-end
-function finite_difference_hessian(f::Function,
-                                   g::Function,
-                                   x::Number)
-    finite_difference(g, x, :central)
 end
 
 ##############################################################################
@@ -242,8 +228,12 @@ function finite_difference_hessian{T <: Number}(f::Function,
     # Return the Hessian
     return H
 end
-finite_difference_hessian{T}(f::Function, g::Function, x::Vector{T}, dtype::Symbol) = finite_difference_jacobian(g, x, dtype)
-finite_difference_hessian{T}(f::Function, g::Function, x::Vector{T}) = finite_difference_jacobian(g, x, :central)
+function finite_difference_hessian{T}(f::Function,
+                                      g::Function,
+                                      x::Vector{T},
+                                      dtype::Symbol = :central)
+    finite_difference_jacobian(g, x, dtype)
+end
 
 ##############################################################################
 ##
@@ -255,7 +245,10 @@ finite_difference_hessian{T}(f::Function, g::Function, x::Vector{T}) = finite_di
 
 # Higher precise finite difference method based on Taylor series approximation.
 # h is the stepsize
-function taylor_finite_difference(f::Function, x::Float64, h::Float64, dtype::Symbol)
+function taylor_finite_difference(f::Function,
+                                  x::Real,
+                                  dtype::Symbol = :central,
+                                  h::Real = 10e-4)
     if dtype == :forward
         f_x = f(x)
         d = 2^3 * (2^2 * (f(x + h) - f_x) - (f(x + 2 * h) - f_x))
@@ -270,17 +263,10 @@ function taylor_finite_difference(f::Function, x::Float64, h::Float64, dtype::Sy
     end
     return d
 end
-function taylor_finite_difference(f::Function, x::Float64, h::Float64)
-    taylor_finite_difference(f, x, h, :central)
-end
-function taylor_finite_difference(f::Function, x::Float64, dtype::Symbol)
-    taylor_finite_difference(f, x, 10e-4, dtype)
-end
-function taylor_finite_difference(f::Function, x::Float64)
-    taylor_finite_difference(f, x, 10e-4)
-end
 
-function taylor_finite_difference_hessian(f::Function, x::Float64, h::Float64)
+function taylor_finite_difference_hessian(f::Function,
+                                          x::Real,
+                                          h::Real)
     f_x = f(x)
     d = 4^6 * (2^4 * (f(x + h) + f(x - h) - 2 * f_x) - (f(x + 2 * h) + f(x - 2 * h) - 2 * f_x))
     d += - (2^4 * (f(x + 4 * h) + f(x - 4 * h) - 2 * f_x) - (f(x + 8 * h) + f(x - 8 * h) - 2 * f_x))
