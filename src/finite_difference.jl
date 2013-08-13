@@ -25,12 +25,12 @@ function finite_difference{T <: Number}(f::Function,
                                         x::T,
                                         dtype::Symbol = :central)
     if dtype == :forward
-        epsilon = sqrt(eps(max(one(T), abs(x))))
+        epsilon = sqrt(eps(T))*max(one(T),abs(x))
         xplusdx = x + epsilon
         # use machine-representable numbers
         return (f(xplusdx) - f(x)) / epsilon
     elseif dtype == :central
-        epsilon = cbrt(eps(max(one(T), abs(x))))
+        epsilon = cbrt(eps(T))*max(one(T), abs(x))
         xplusdx, xminusdx = x + epsilon, x - epsilon
         # Is it better to do 2 * epsilon or xplusdx - xminusdx?
         return (f(xplusdx) - f(xminusdx)) / (2 * epsilon)
