@@ -88,6 +88,8 @@ function complex_differentiable_abs{T <: Complex}(z::T)
         return -real(z) - im * imag(z)
     else
         return real(z) + im * imag(z)
+    end
+end
 
 ##############################################################################
 ##
