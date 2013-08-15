@@ -2,13 +2,6 @@
 ##
 ## Graveyard of Alternative Functions
 ##
-## In Nodedal and Wright, epsilon was calculated as
-##
-##   epsilon = sqrt(eps())
-##
-## In the examples I've tested, this strategy is best when x is small
-##  and becomes very bad when x is larger
-##
 ## The proper setting of epsilon depends on whether we're doing central
 ##  differencing or forward differencing. See, for example, section 5.7 of
 ##  Numerical Recipes.
@@ -21,21 +14,47 @@
 ##
 ##############################################################################
 
+macro forwardrule(x, T, e)
+    x, T, e = esc(x), esc(T), esc(e)
+    quote
+        $e = sqrt(eps($T)) * max(one($T), abs($x))
+    end
+end
+
+macro centralrule(x, T, e)
+    x, T, e = esc(x), esc(T), esc(e)
+    quote
+        $e = cbrt(eps($T)) * max(one($T), abs($x))
+    end
+end
+
+macro hessianrule(x, T, e)
+    x, T, e = esc(x), esc(T), esc(e)
+    quote
+        $e = eps($T)^(1/4) * max(one($T), abs($x))
+    end
+end
+
+macro complexrule(x, T, e)
+    x, T, e = esc(x), esc(T), esc(e)
+    quote
+        $e = eps($x)
+    end
+end
+
 function finite_difference{T <: Number}(f::Function,
                                         x::T,
                                         dtype::Symbol = :central)
     if dtype == :forward
-        epsilon = sqrt(eps(T))*max(one(T),abs(x))
+        @forwardrule x T epsilon
         xplusdx = x + epsilon
-        # use machine-representable numbers
         return (f(xplusdx) - f(x)) / epsilon
     elseif dtype == :central
-        epsilon = cbrt(eps(T))*max(one(T), abs(x))
+        @centralrule x T epsilon
         xplusdx, xminusdx = x + epsilon, x - epsilon
-        # Is it better to do 2 * epsilon or xplusdx - xminusdx?
-        return (f(xplusdx) - f(xminusdx)) / (2 * epsilon)
+        return (f(xplusdx) - f(xminusdx)) / (epsilon + epsilon)
     elseif dtype == :complex
-        epsilon = eps(x)
+        @complexrule x T epsilon
         xplusdx = x + epsilon * im
         return imag(f(xplusdx)) / epsilon
     else
@@ -63,7 +82,7 @@ function finite_difference!{S <: Number, T <: Number}(f::Function,
         # Establish a baseline value of f(x).
         f_x = f(x)
         for i = 1:n
-            epsilon = sqrt(eps(max(one(T), abs(x[i]))))
+            @forwardrule x[i] S epsilon
             oldx = x[i]
             x[i] = oldx + epsilon
             f_xplusdx = f(x)
@@ -72,14 +91,14 @@ function finite_difference!{S <: Number, T <: Number}(f::Function,
         end
     elseif dtype == :central
         for i = 1:n
-            epsilon = cbrt(eps(max(one(T), abs(x[i]))))
+            @centralrule x[i] S epsilon
             oldx = x[i]
             x[i] = oldx + epsilon
             f_xplusdx = f(x)
             x[i] = oldx - epsilon
             f_xminusdx = f(x)
             x[i] = oldx
-            g[i] = (f_xplusdx - f_xminusdx) / (2 * epsilon)
+            g[i] = (f_xplusdx - f_xminusdx) / (epsilon + epsilon)
         end
     else
         error("dtype must be :forward or :central")
@@ -119,7 +138,7 @@ function finite_difference_jacobian!{R <: Number,
     # Iterate over each dimension of the gradient separately.
     if dtype == :forward
         for i = 1:n
-            epsilon = sqrt(eps(max(one(T), abs(x[i]))))
+            @forwardrule x[i] R epsilon
             oldx = x[i]
             x[i] = oldx + epsilon
             f_xplusdx = f(x)
@@ -128,14 +147,14 @@ function finite_difference_jacobian!{R <: Number,
         end
     elseif dtype == :central
         for i = 1:n
-            epsilon = cbrt(eps(max(one(T), abs(x[i]))))
+            @centralrule x[i] R epsilon
             oldx = x[i]
             x[i] = oldx + epsilon
             f_xplusdx = f(x)
             x[i] = oldx - epsilon
             f_xminusdx = f(x)
             x[i] = oldx
-            J[:, i] = (f_xplusdx - f_xminusdx) / (2 * epsilon)
+            J[:, i] = (f_xplusdx - f_xminusdx) / (epsilon + epsilon)
         end
     else
         error("dtype must :forward or :central")
@@ -165,8 +184,9 @@ end
 ##
 ##############################################################################
 
-function finite_difference_hessian{T <: Number}(f::Function, x::T)
-    epsilon = eps(max(one(T), abs(x)))^(1/4)
+function finite_difference_hessian{T <: Number}(f::Function,
+                                                x::T)
+    @hessianrule x T epsilon
     (f(x + epsilon) - 2*f(x) + f(x - epsilon))/epsilon^2
 end
 function finite_difference_hessian(f::Function,
@@ -189,21 +209,22 @@ function finite_difference_hessian!{S <: Number,
     # What is the dimension of x?
     n = length(x)
 
+    epsilon = NaN
     # TODO: Remove all these copies
     xpp, xpm, xmp, xmm = copy(x), copy(x), copy(x), copy(x)
     fx = f(x)
     for i = 1:n
         xi = x[i]
-        epsilon = eps(max(one(T), abs(x[i])))^(1/4)
+        @hessianrule x[i] S epsilon
         xpp[i], xmm[i] = xi + epsilon, xi - epsilon
         H[i, i] = (f(xpp) - 2*fx + f(xmm)) / epsilon^2
-        epsiloni = cbrt(eps(max(one(T), abs(x[i]))))
+        @centralrule x[i] S epsiloni
         xp = xi + epsiloni
         xm = xi - epsiloni
         xpp[i], xpm[i], xmp[i], xmm[i] = xp, xp, xm, xm
         for j = i+1:n
             xj = x[j]
-            epsilonj = cbrt(eps(max(one(T), abs(x[j]))))
+            @centralrule x[j] S epsilonj
             xp = xj + epsilonj
             xm = xj - epsilonj
             xpp[j], xpm[j], xmp[j], xmm[j] = xp, xm, xp, xm
@@ -228,10 +249,10 @@ function finite_difference_hessian{T <: Number}(f::Function,
     # Return the Hessian
     return H
 end
-function finite_difference_hessian{T}(f::Function,
-                                      g::Function,
-                                      x::Vector{T},
-                                      dtype::Symbol = :central)
+function finite_difference_hessian{T <: Number}(f::Function,
+                                                g::Function,
+                                                x::Vector{T},
+                                                dtype::Symbol = :central)
     finite_difference_jacobian(g, x, dtype)
 end
 
