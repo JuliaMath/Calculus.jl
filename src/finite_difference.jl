@@ -64,6 +64,33 @@ end
 
 ##############################################################################
 ##
+## Complex Step Finite Differentiation Tools
+##
+## Martins, Sturdza, and Alonso (2003) suggest the only non-analytic
+##  fuction of which complex step finite difference approximation
+##  will fail and finite difference will not is abs().
+##  They suggest redefining as follows for z = x + im*y
+##
+##  if x < 0
+##      -x - im * y
+##  else
+##      x + im * y
+##
+## This is provided below as complex_differentiable_abs (renaming encouraged!)
+##
+## Also, if your fuctions has control flow using < or >, you must compare
+## real(z) for your control flow.
+##
+##############################################################################
+
+function complex_differentiable_abs{T <: Complex}(z::T)
+    if real(z) < 0
+        return -real(z) - im * imag(z)
+    else
+        return real(z) + im * imag(z)
+
+##############################################################################
+##
 ## Gradient of f: R^n -> R
 ##
 ##############################################################################
