@@ -35,15 +35,16 @@ f4(x::Vector) = (100.0 - x[1])^2 + (50.0 - x[2])^2
 # second_derivative()
 #
 
-@test norm(second_derivative(x -> x^2)(0.0) - 2.0) < 10e-4
-@test norm(second_derivative(x -> x^2)(1.0) - 2.0) < 10e-4
-@test norm(second_derivative(x -> x^2)(10.0) - 2.0) < 10e-4
-@test norm(second_derivative(x -> x^2)(100.0) - 2.0) < 10e-4
+@test norm(second_derivative(x -> x^2, x -> 2*x)(0.0) - 2.0) < 10e-4
+@test norm(second_derivative(x -> x^2, x -> 2*x)(1.0) - 2.0) < 10e-4
+@test norm(second_derivative(x -> x^2, x -> 2*x)(10.0) - 2.0) < 10e-4
+@test norm(second_derivative(x -> x^2, x -> 2*x)(100.0) - 2.0) < 10e-4
 
 #
 # hessian()
 #
 
 f5(x) = sin(x[1]) + cos(x[2])
+g5(x) = [cos(x[1]), -sin(x[2])]
 @test norm(gradient(f5)([0.0, 0.0]) - [cos(0.0), -sin(0.0)]) < 10e-4
-@test norm(hessian(f5)([0.0, 0.0]) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4
+@test norm(hessian(f5,g5)([0.0, 0.0]) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4

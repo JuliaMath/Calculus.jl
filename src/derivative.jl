@@ -8,11 +8,13 @@ function derivative(f::Function, ftype::Symbol, dtype::Symbol)
   end
   return g
 end
+
 derivative{T <: Number}(f::Function, x::Union(T, Vector{T}), dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
 derivative(f::Function, dtype::Symbol = :central) = derivative(f, :scalar, dtype)
 
 gradient{T <: Number}(f::Function, x::Union(T, Vector{T}), dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
 gradient(f::Function, dtype::Symbol = :central) = derivative(f, :vector, dtype)
+
 
 ctranspose(f::Function) = derivative(f)
 
@@ -71,9 +73,5 @@ end
 function hessian{T <: Number}(f::Function, x::Vector{T})
   finite_difference_hessian(f, gradient(f), x, :central)
 end
-second_derivative(f::Function, g::Function, dtype::Symbol) = second_derivative(f, g, :scalar, dtype)
-second_derivative(f::Function, g::Function) = second_derivative(f, g, :scalar, :central)
-second_derivative(f::Function) = second_derivative(f, derivative(f), :scalar, :central)
-hessian(f::Function, g::Function, dtype::Symbol) = second_derivative(f, g, :vector, dtype)
-hessian(f::Function, g::Function) = second_derivative(f, g, :vector, :central)
-hessian(f::Function) = second_derivative(f, gradient(f), :vector, :central)
+second_derivative(f::Function, g::Function, dtype::Symbol=:central) = second_derivative(f, g, :scalar, dtype)
+hessian(f::Function, g::Function, dtype::Symbol=:central) = second_derivative(f, g, :vector, dtype)
