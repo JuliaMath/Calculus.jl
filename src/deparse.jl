@@ -2,7 +2,7 @@ function deparse(ex::Expr)
     if ex.head != :call
         return string(ex)
     else
-        if contains([:+, :-, :*, :/, :^], ex.args[1])
+        if ex.args[1] in [:+, :-, :*, :/, :^]
             if length(ex.args) == 2
                 return string(ex.args[1], deparse(ex.args[2]))
             else
