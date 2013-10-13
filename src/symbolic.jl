@@ -102,6 +102,31 @@ function simplify(ex::Expr)
     return new_ex
 end
 
+function sum_numeric_args(args)
+    sum = 0
+    sym_args = {}
+    for arg in args
+        if isa(arg, Number)
+            sum += arg
+        else
+            sym_args = [sym_args, arg]
+        end
+    end
+    (sum, sym_args)
+end
+
+function mul_numeric_args(args)
+    prod = 1
+    sym_args = {}
+    for arg in args
+        if isa(arg, Number)
+            prod *= arg
+        else
+            sym_args = [sym_args, arg]
+        end
+    end
+    (prod, sym_args)
+end
 
 # Handles all lengths for ex.args
 # Removes any 0's in a sum
@@ -113,6 +138,8 @@ function simplify(::SymbolParameter{:+}, args)
     elseif length(new_args) == 1
         return new_args[1]
     else
+        (sum, sym_args) = sum_numeric_args(new_args)
+        new_args = sum==0 ? sym_args : [sum, sym_args]
         return Expr(:call, :+, new_args...)
     end
 end
@@ -144,6 +171,8 @@ function simplify(::SymbolParameter{:*}, args)
     elseif any(new_args .== 0)
         return 0
     else
+        (prod, sym_args) = mul_numeric_args(new_args)
+        new_args = prod==1 ? sym_args : [prod, sym_args]
         return Expr(:call, :*, new_args...)
     end
 end
