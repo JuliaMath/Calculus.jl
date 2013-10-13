@@ -15,7 +15,7 @@
 @assert isequal(differentiate(:(x * a), :x), :a)
 @assert isequal(differentiate(:(x ^ 2), :x), :(2 * x))
 @assert isequal(differentiate(:(a * x ^ 2), :x), :(a * (2 * x)))
-@assert isequal(differentiate(:(2 ^ x), :x), :(*(^(2, x), 0.6931471805599453)))
+@assert isequal(differentiate(:(2 ^ x), :x), :(*(0.6931471805599453, ^(2, x))))
 @assert isequal(differentiate(:(sin(x)), :x), :(cos(x)))
 @assert isequal(differentiate(:(cos(x)), :x), :(*(-1,sin(x))))  # needs a better simplify
 @assert isequal(differentiate(:(tan(x)), :x), :(1 + tan(x)^2))
@@ -74,3 +74,17 @@ end
 @assert isequal(testfun(x), :(^($(x),2)))
 @assert isequal(testfun(3), 9)
 @assert isequal(testfun(@sexpr(x+y)), :(^(+($x,$y),2)))
+
+#
+# Simplify tests
+#
+
+@assert isequal(simplify(:(x+y)), :(+(x,y)))
+@assert isequal(simplify(:(x+3)), :(+(3,x)))
+@assert isequal(simplify(:(x+3+4)), :(+(7,x)))
+@assert isequal(simplify(:(2+y+x+3)), :(+(5,y,x)))
+
+@assert isequal(simplify(:(x*y)), :(*(x,y)))
+@assert isequal(simplify(:(x*3)), :(*(3,x)))
+@assert isequal(simplify(:(x*3*4)), :(*(12,x)))
+@assert isequal(simplify(:(2*y*x*3)), :(*(6,y,x)))
