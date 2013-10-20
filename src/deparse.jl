@@ -11,7 +11,7 @@ function deparse(ex::Expr)
     op = ex.args[1]
     args = ex.args[2:end]
     if !(op in infix_ops)
-        return string(op, "(", join(map(x -> deparse(x), args), ", "), ")")
+        return string(op, "(", join(map(deparse, args), ", "), ")")
     end
     if length(args) == 1
         return string(op, deparse(args[1]))
