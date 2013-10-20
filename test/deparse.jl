@@ -1,2 +1,8 @@
 @assert isequal(deparse(:(cos(x) + sin(x))), "cos(x) + sin(x)")
 @assert isequal(deparse(:(cos(x) + sin(x) + exp(-x))), "cos(x) + sin(x) + exp(-x)")
+@assert isequal(deparse(parse("x+y*z")), "x + y * z")
+@assert isequal(deparse(parse("(x+y)*z")), "(x + y) * z")
+@assert isequal(deparse(parse("1/(x/y)")), "1 / (x / y)")
+@assert isequal(deparse(parse("1/(x*y)")), "1 / (x * y)")
+@assert isequal(deparse(parse("z^(x+y)")), "z ^ (x + y)")
+@assert isequal(deparse(parse("z^(x*y)")), "z ^ (x * y)")
