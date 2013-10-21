@@ -79,12 +79,12 @@ end
 # Simplify tests
 #
 
-@assert isequal(simplify(:(x+y)), :(+(x,y)))
-@assert isequal(simplify(:(x+3)), :(+(3,x)))
-@assert isequal(simplify(:(x+3+4)), :(+(7,x)))
-@assert isequal(simplify(:(2+y+x+3)), :(+(5,y,x)))
+@test isequal(simplify(:(x+y)), :(+(x,y)))
+@test isequal(simplify(:(x+3)), :(+(3,x)))
+@test isequal(simplify(:(x+3+4)), :(+(7,x)))
+@test isequal(simplify(:(2+y+x+3)), :(+(5,y,x)))
 
-@assert isequal(simplify(:(x*y)), :(*(x,y)))
-@assert isequal(simplify(:(x*3)), :(*(3,x)))
-@assert isequal(simplify(:(x*3*4)), :(*(12,x)))
-@assert isequal(simplify(:(2*y*x*3)), :(*(6,y,x)))
+@test isequal(simplify(:(x*y)), :(*(x,y)))
+@test isequal(simplify(:(x*3)), :(*(3,x)))
+@test isequal(simplify(:(x*3*4)), :(*(12,x)))
+@test isequal(simplify(:(2*y*x*3)), :(*(6,y,x)))
