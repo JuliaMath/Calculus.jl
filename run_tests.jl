@@ -2,19 +2,19 @@
 # Correctness Tests
 #
 
-require("Calculus")
 using Calculus
+using Base.Test
 
-my_tests = ["test/finite_difference.jl",
-            "test/derivative.jl",
-            "test/check_derivative.jl",
-            "test/integrate.jl",
-            "test/symbolic.jl",
-            "test/deparse.jl"]
+tests = ["finite_difference",
+         "derivative",
+         "check_derivative",
+         "integrate",
+         "symbolic",
+         "deparse"]
 
 println("Running tests:")
 
-for my_test in my_tests
-    println(" * $(my_test)")
-    include(my_test)
+for t in tests
+    println(" * $(t)")
+    include("test/$(t).jl")
 end
