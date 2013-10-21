@@ -1,24 +1,30 @@
+const infix_ops = [:+, :-, :*, :/, :^]
+const op_priority = {:+ => 1, :- => 1, :* => 2, :/ => 2, :^ => 3}
+
+isinfix(ex::Expr) = ex.head == :call && ex.args[1] in infix_ops
+isinfix(other) = false
+
 function deparse(ex::Expr)
     if ex.head != :call
         return string(ex)
-    else
-        if ex.args[1] in [:+, :-, :*, :/, :^]
-            if length(ex.args) == 2
-                return string(ex.args[1], deparse(ex.args[2]))
-            else
-                return join(map(x -> deparse(x), ex.args[2:end]),
-                            string(" ", string(ex.args[1]), " "))
-            end
+    end
+    op = ex.args[1]
+    args = ex.args[2:end]
+    if !(op in infix_ops)
+        return string(op, "(", join(map(deparse, args), ", "), ")")
+    end
+    if length(args) == 1
+        return string(op, deparse(args[1]))
+    end
+    str = {}
+    for subexpr in args
+        if isinfix(subexpr) && op_priority[subexpr.args[1]] <= op_priority[op]
+            push!(str, string("(", deparse(subexpr), ")"))
         else
-            return string(ex.args[1],
-                          "(",
-                          join(map(x -> deparse(x), ex.args[2:end]), ", "),
-                          ")")
+            push!(str, deparse(subexpr))
         end
     end
+    return join(str, string(" ", string(op), " "))
 end
-deparse(other::Any) = string(other)
 
-# TODO: Examine string contents of inputs, insert parentheses if added:
-# + (CONTAINS * OR /)
-# - (CONTAINS * OR /)
+deparse(other) = string(other)
