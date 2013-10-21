@@ -128,7 +128,7 @@ function mul_numeric_args(args)
     (prod, sym_args)
 end
 
-# Handles all lengths for ex.args
+# Handles `args` of all lengths
 # Removes any 0's in a sum
 function simplify(::SymbolParameter{:+}, args)
     new_args = map(x -> simplify(x), filter(x -> x != 0, args))
@@ -144,7 +144,7 @@ function simplify(::SymbolParameter{:+}, args)
     end
 end
 
-# Assumes length(ex.args) == 3
+# Assumes length(args) == 3
 # Removes any 0's in a subtraction
 function simplify(::SymbolParameter{:-}, args)
     new_args = map(x -> simplify(x), filter(x -> x != 0, args))
@@ -158,13 +158,13 @@ function simplify(::SymbolParameter{:-}, args)
     end
 end
 
-# Handles all lengths for ex.args
+# Handles `args` of all lengths
 # Removes any 1's in a product
 function simplify(::SymbolParameter{:*}, args)
     new_args = map(x -> simplify(x), filter(x -> x != 1, args))
     if length(new_args) == 0
         return 1
-    # Special Case: simplify(:(*x)) == x
+    # Special Case: simplify(:(*(x))) == x
     elseif length(new_args) == 1
         return new_args[1]
     # Special Case: simplify(:(x * y * z * 0)) == 0
@@ -177,7 +177,7 @@ function simplify(::SymbolParameter{:*}, args)
     end
 end
 
-# Assumes length(ex.args) == 3
+# Assumes length(args) == 3
 function simplify(::SymbolParameter{:/}, args)
     new_args = map(x -> simplify(x), args)
     # Special Case: simplify(:(x / 1)) == x
@@ -191,7 +191,7 @@ function simplify(::SymbolParameter{:/}, args)
     end
 end
 
-# Assumes length(ex.args) == 3
+# Assumes length(args) == 3
 function simplify(::SymbolParameter{:^}, args)
     new_args = map(x -> simplify(x), args)
     # Special Case: simplify(:(x ^ 0)) == 1
