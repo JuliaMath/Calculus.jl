@@ -79,6 +79,7 @@ SymbolParameter(s::Symbol) = SymbolParameter{s}()
 #   
 #################################################################
 
+isnumber(a) = isa(a, Number)
 
 # Numbers and symbols can't be simplified further
 simplify(x) = x
@@ -86,13 +87,13 @@ simplify(n::Number) = n
 simplify(s::SymbolicVariable) = s
 
 # The default is just to simplify arguments.
-simplify{T}(x::SymbolParameter{T}, args) = Expr(:call, T, map(x -> simplify(x), args)...)
+simplify{T}(x::SymbolParameter{T}, args) = Expr(:call, T, map(simplify, args)...)
 
 function simplify(ex::Expr)
     if ex.head != :call
         return ex
     end
-    if all(map(a -> isa(a, Number), ex.args[2:end]))
+    if all(map(isnumber, ex.args[2:end]))
         return eval(ex)
     end
     new_ex = simplify(SymbolParameter(ex.args[1]), ex.args[2:end])
@@ -106,10 +107,10 @@ function sum_numeric_args(args)
     sum = 0
     sym_args = {}
     for arg in args
-        if isa(arg, Number)
+        if isnumber(arg)
             sum += arg
         else
-            sym_args = [sym_args, arg]
+            push!(sym_args, arg)
         end
     end
     (sum, sym_args)
@@ -119,94 +120,94 @@ function mul_numeric_args(args)
     prod = 1
     sym_args = {}
     for arg in args
-        if isa(arg, Number)
+        if isnumber(arg)
             prod *= arg
         else
-            sym_args = [sym_args, arg]
+            push!(sym_args, arg)
         end
     end
     (prod, sym_args)
 end
 
-# Handles `args` of all lengths
-# Removes any 0's in a sum
+# Handle `args` of all lengths
 function simplify(::SymbolParameter{:+}, args)
-    new_args = map(x -> simplify(x), filter(x -> x != 0, args))
-    if length(new_args) == 0
+    # Remove any 0's in a sum
+    args = map(simplify, filter(x -> x != 0, args))
+    if length(args) == 0
         return 0
     # Special Case: simplify(:(+x)) == x
-    elseif length(new_args) == 1
-        return new_args[1]
+    elseif length(args) == 1
+        return args[1]
     else
-        (sum, sym_args) = sum_numeric_args(new_args)
-        new_args = sum==0 ? sym_args : [sum, sym_args]
-        return Expr(:call, :+, new_args...)
+        (sum, sym_args) = sum_numeric_args(args)
+        args = sum==0 ? sym_args : [sum, sym_args]
+        return Expr(:call, :+, args...)
     end
 end
 
-# Assumes length(args) == 3
-# Removes any 0's in a subtraction
+# Assume length(args) == 3
 function simplify(::SymbolParameter{:-}, args)
-    new_args = map(x -> simplify(x), filter(x -> x != 0, args))
-    if length(new_args) == 0
+    # Remove any 0's in a subtraction
+    args = map(simplify, filter(x -> x != 0, args))
+    if length(args) == 0
         return 0
     # Special Case: simplify(:(x - x)) == 0
-    elseif length(new_args) == 2 && new_args[1] == new_args[2]
+    elseif length(args) == 2 && args[1] == args[2]
         return 0
     else
-        return Expr(:call, :-, new_args...)
+        return Expr(:call, :-, args...)
     end
 end
 
-# Handles `args` of all lengths
-# Removes any 1's in a product
+# Handle `args` of all lengths
 function simplify(::SymbolParameter{:*}, args)
-    new_args = map(x -> simplify(x), filter(x -> x != 1, args))
-    if length(new_args) == 0
+    # Remove any 1's in a product
+    args = map(simplify, filter(x -> x != 1, args))
+    if length(args) == 0
         return 1
     # Special Case: simplify(:(*(x))) == x
-    elseif length(new_args) == 1
-        return new_args[1]
+    elseif length(args) == 1
+        return args[1]
     # Special Case: simplify(:(x * y * z * 0)) == 0
-    elseif any(new_args .== 0)
+    elseif any(args .== 0)
         return 0
     else
-        (prod, sym_args) = mul_numeric_args(new_args)
-        new_args = prod==1 ? sym_args : [prod, sym_args]
-        return Expr(:call, :*, new_args...)
+        (prod, sym_args) = mul_numeric_args(args)
+        args = prod==1 ? sym_args : [prod, sym_args]
+        return Expr(:call, :*, args...)
     end
 end
 
-# Assumes length(args) == 3
+# Assume length(args) == 3
 function simplify(::SymbolParameter{:/}, args)
-    new_args = map(x -> simplify(x), args)
+    args = map(simplify, args)
     # Special Case: simplify(:(x / 1)) == x
-    if new_args[2] == 1
-        return new_args[1]
+    if args[2] == 1
+        return args[1]
     # Special Case: simplify(:(0 / x)) == 0
-    elseif new_args[1] == 0
+    elseif args[1] == 0
         return 0
     else
-        return Expr(:call, :/, new_args...)
+        return Expr(:call, :/, args...)
     end
 end
 
-# Assumes length(args) == 3
+# Assume length(args) == 3
 function simplify(::SymbolParameter{:^}, args)
-    new_args = map(x -> simplify(x), args)
+    args = map(simplify, args)
     # Special Case: simplify(:(x ^ 0)) == 1
-    if new_args[2] == 0
+    if args[2] == 0
         return 1
     # Special Case: simplify(:(x ^ 1)) == x
-    elseif new_args[2] == 1
-        return new_args[1]
+    elseif args[2] == 1
+        return args[1]
     # Special Case: simplify(:(0 ^ x)) == 0
-    elseif new_args[1] == 0
+    elseif args[1] == 0
         return 0
     # Special Case: simplify(:(1 ^ x)) == 1
-    elseif new_args[1] == 1
+    elseif args[1] == 1
         return 1
     else
-        return Expr(:call, :^, new_args...)
+        return Expr(:call, :^, args...)
     end
 end
