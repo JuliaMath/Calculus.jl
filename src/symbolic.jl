@@ -129,6 +129,29 @@ function mul_numeric_args(args)
     (prod, sym_args)
 end
 
+cancel_common(num, den) = (num, den)
+cancel_common(num::Symbol, den::Symbol) = num==den ? (1, 1) : (num, den)
+cancel_common(num::Expr, den::Symbol) = cancel_common(num, :(*($den)))
+cancel_common(num::Symbol, den::Expr) = cancel_common(:(*($num)), den)
+
+function cancel_common(num::Expr, den::Expr)
+    if num.args[1] != :* || den.args[1] != :*
+        return (num, den)
+    end
+    an = num.args[2:end]
+    ad = den.args[2:end]
+    i = 1
+    while i <= length(ad)
+        idx = findfirst(an, ad[i])
+        if idx != 0
+            splice!(ad, i)
+            splice!(an, idx)
+        end
+        i += 1
+    end
+    (Expr(:call, :*, an...), Expr(:call, :*, ad...))
+end
+
 # Handle `args` of all lengths
 function simplify(::SymbolParameter{:+}, args)
     # Remove any 0's in a sum
@@ -188,6 +211,8 @@ function simplify(::SymbolParameter{:/}, args)
     elseif args[1] == 0
         return 0
     else
+        args = cancel_common(args[1], args[2])
+        args = map(simplify, args)
         return Expr(:call, :/, args...)
     end
 end
