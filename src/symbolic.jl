@@ -138,6 +138,9 @@ function simplify(::SymbolParameter{:+}, args)
     # Special Case: simplify(:(+x)) == x
     elseif length(args) == 1
         return args[1]
+    # Special Case: simplify(:(x + x + x)) == 3*x
+    elseif all(args .== args[1])
+        return Expr(:call, :*, args[1], length(args))
     else
         (sum, sym_args) = sum_numeric_args(args)
         args = sum==0 ? sym_args : [sum, sym_args]
@@ -171,6 +174,9 @@ function simplify(::SymbolParameter{:*}, args)
     # Special Case: simplify(:(x * y * z * 0)) == 0
     elseif any(args .== 0)
         return 0
+    # Special Case: simplify(:(x * x * x * x)) == x^4
+    elseif all(args .== args[1])
+        return Expr(:call, :^, args[1], length(args))
     else
         (prod, sym_args) = mul_numeric_args(args)
         args = prod==1 ? sym_args : [prod, sym_args]

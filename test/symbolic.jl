@@ -21,7 +21,7 @@
 @test isequal(differentiate(:(tan(x)), :x), :(1 + tan(x)^2))
 @test isequal(differentiate(:(exp(x)), :x), :(exp(x)))
 @test isequal(differentiate(:(log(x)), :x), :(1 / x))
-@test isequal(differentiate(:(sin(x) + sin(x)), :x), :(cos(x) + cos(x)))
+@test isequal(differentiate(:(sin(x) + sin(x)), :x), :(2*cos(x)))
 @test isequal(differentiate(:(sin(x) - cos(x)), :x), :(-(cos(x),*(-1,sin(x))))) # Simplify -(a, -(b)) => +(a, b)
 @test isequal(differentiate(:(x * sin(x)), :x), :(sin(x) + x * cos(x)))
 @test isequal(differentiate(:(x / sin(x)), :x), :((sin(x) - x * cos(x)) / (sin(x)^2)))
@@ -88,3 +88,7 @@ end
 @test isequal(simplify(:(x*3)), :(*(3,x)))
 @test isequal(simplify(:(x*3*4)), :(*(12,x)))
 @test isequal(simplify(:(2*y*x*3)), :(*(6,y,x)))
+
+@test isequal(simplify(:(x*x*x)), :(x^3))
+@test isequal(simplify(:(x+x+x)), :(3*x))
+@test isequal(simplify(:(f(x,y)+f(x,y))), :(2*f(x,y)))
