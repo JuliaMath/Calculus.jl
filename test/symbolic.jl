@@ -32,15 +32,13 @@
 @test isequal(differentiate(:(x^n), :x), :(*(n, ^(x, -(n, 1)))))
 @test isequal(differentiate(:(n^x), :x), :(*(^(n, x), log(n))))
 @test isequal(differentiate(:(n^n), :x), 0)
+@test isequal(differentiate(:(sin(x)^2), :x), :(2 * cos(x) * sin(x)))
 
 #
 # Multivariate Calculus
 #
 
 @test isequal(differentiate(:(sin(x) + sin(y)), [:x, :y]), [:(cos(x)), :(cos(y))])
-
-# TODO: Get the generalized power rule right.
-# @test isequal(differentiate(:(sin(x)^2), :x), :(2 * sin(x) * cos(x)))
 
 #
 # Strings instead of symbols
