@@ -131,8 +131,8 @@ end
 
 cancel_common(num, den) = (num, den)
 cancel_common(num::Symbol, den::Symbol) = num==den ? (1, 1) : (num, den)
-cancel_common(num::Expr, den::Symbol) = cancel_common(num, :(*($den)))
-cancel_common(num::Symbol, den::Expr) = cancel_common(:(*($num)), den)
+cancel_common(num::Expr, den::Symbol) = cancel_common(num, Expr(:call, :*, den))
+cancel_common(num::Symbol, den::Expr) = cancel_common(Expr(:call, :*, num), den)
 
 function cancel_common(num::Expr, den::Expr)
     if num.args[1] != :* || den.args[1] != :*
