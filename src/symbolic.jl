@@ -171,6 +171,9 @@ function simplify(::SymbolParameter{:*}, args)
     # Special Case: simplify(:(x * y * z * 0)) == 0
     elseif any(args .== 0)
         return 0
+    # Special Case: simplify(:(*(-1,x))) == -x
+    elseif length(args) == 2 && args[1] == -1
+        return Expr(:call, :-, args[2])
     else
         (prod, sym_args) = mul_numeric_args(args)
         args = prod==1 ? sym_args : [prod, sym_args]
