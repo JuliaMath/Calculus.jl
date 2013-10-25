@@ -17,17 +17,17 @@
 @test isequal(differentiate(:(a * x ^ 2), :x), :(a * (2 * x)))
 @test isequal(differentiate(:(2 ^ x), :x), :(*(0.6931471805599453, ^(2, x))))
 @test isequal(differentiate(:(sin(x)), :x), :(cos(x)))
-@test isequal(differentiate(:(cos(x)), :x), :(*(-1,sin(x))))  # needs a better simplify
+@test isequal(differentiate(:(cos(x)), :x), :(-sin(x)))
 @test isequal(differentiate(:(tan(x)), :x), :(1 + tan(x)^2))
 @test isequal(differentiate(:(exp(x)), :x), :(exp(x)))
 @test isequal(differentiate(:(log(x)), :x), :(1 / x))
 @test isequal(differentiate(:(sin(x) + sin(x)), :x), :(cos(x) + cos(x)))
-@test isequal(differentiate(:(sin(x) - cos(x)), :x), :(-(cos(x),*(-1,sin(x))))) # Simplify -(a, -(b)) => +(a, b)
+@test isequal(differentiate(:(sin(x) - cos(x)), :x), :(cos(x) + sin(x)))
 @test isequal(differentiate(:(x * sin(x)), :x), :(sin(x) + x * cos(x)))
 @test isequal(differentiate(:(x / sin(x)), :x), :((sin(x) - x * cos(x)) / (sin(x)^2)))
 @test isequal(differentiate(:(sin(sin(x))), :x), :(*(cos(x),cos(sin(x)))))
-@test isequal(differentiate(:(sin(cos(x) + sin(x))), :x), :(*(+(*(-1,sin(x)),cos(x)),cos(+(cos(x),sin(x)))))) # Clean this up
-@test isequal(differentiate(:(exp(-x)), :x), :(*(-1,exp(-(x))))) # Simplify this to -(exp(-x))
+@test isequal(differentiate(:(sin(cos(x) + sin(x))), :x), :(*(+(-sin(x),cos(x)),cos(+(cos(x),sin(x))))))
+@test isequal(differentiate(:(exp(-x)), :x), :(-exp(-x)))
 @test isequal(differentiate(:(log(x^2)), :x), :(/(*(2,x),^(x,2))))
 @test isequal(differentiate(:(x^n), :x), :(*(n, ^(x, -(n, 1)))))
 @test isequal(differentiate(:(n^x), :x), :(*(^(n, x), log(n))))
@@ -47,7 +47,7 @@
 #
 
 # @test isequal(differentiate("sin(x) + cos(x)^2"), :(+(cos(x),*(2,cos(x)))))
-@test isequal(differentiate("x + exp(-x) + sin(exp(x))", :x), :(+(1,*(-1,exp(-(x))),*(exp(x),cos(exp(x))))))
+@test isequal(differentiate("x + exp(-x) + sin(exp(x))", :x), :(+(1,-exp(-x),*(exp(x),cos(exp(x))))))
 
 # TODO: Make these work
 # differentiate(:(sin(x)), :x)(0.0)
