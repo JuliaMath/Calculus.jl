@@ -145,6 +145,9 @@ function simplify(::SymbolParameter{:+}, args)
     end
 end
 
+isminus(ex::Expr) = ex.head == :call && ex.args[1] == :- && length(ex.args) == 2
+isminus(ex) = false
+
 # Assume length(args) == 3
 function simplify(::SymbolParameter{:-}, args)
     # Remove any 0's in a subtraction
@@ -154,6 +157,9 @@ function simplify(::SymbolParameter{:-}, args)
     # Special Case: simplify(:(x - x)) == 0
     elseif length(args) == 2 && args[1] == args[2]
         return 0
+    # Special Case: simplify(:(x - (-y))) == x + y
+    elseif length(args) == 2 && isminus(args[2])
+        return Expr(:call, :+, args[1], args[2].args[2])
     else
         return Expr(:call, :-, args...)
     end

@@ -22,7 +22,7 @@
 @test isequal(differentiate(:(exp(x)), :x), :(exp(x)))
 @test isequal(differentiate(:(log(x)), :x), :(1 / x))
 @test isequal(differentiate(:(sin(x) + sin(x)), :x), :(cos(x) + cos(x)))
-@test isequal(differentiate(:(sin(x) - cos(x)), :x), :(-(cos(x),-sin(x)))) # Simplify -(a, -(b)) => +(a, b)
+@test isequal(differentiate(:(sin(x) - cos(x)), :x), :(cos(x) + sin(x)))
 @test isequal(differentiate(:(x * sin(x)), :x), :(sin(x) + x * cos(x)))
 @test isequal(differentiate(:(x / sin(x)), :x), :((sin(x) - x * cos(x)) / (sin(x)^2)))
 @test isequal(differentiate(:(sin(sin(x))), :x), :(*(cos(x),cos(sin(x)))))
