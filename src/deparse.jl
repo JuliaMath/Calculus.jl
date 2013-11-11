@@ -24,7 +24,7 @@ function deparse(ex::Expr)
             push!(str, deparse(subexpr))
         end
     end
-    return join(str, string(" ", string(op), " "))
+    return join(str, string(" ", op, " "))
 end
 
 deparse(other) = string(other)
