@@ -17,18 +17,18 @@ function adaptive_simpsons_inner(f::Function, a::Real, b::Real,
            adaptive_simpsons_inner(f, c, b, epsilon / 2, Sright, fc, fb, fe, bottom - 1)
 end
 
-function adaptive_simpsons_outer(f::Function, a::Real, b::Real, accuracy::Real, max_iterations::Int)
+function adaptive_simpsons_outer(f::Function, a::Real, b::Real,
+                                 accuracy::Real=10e-10, max_iterations::Int=50)
     c = (a + b) / 2
     h = b - a
     fa = f(a)
     fb = f(b)
     fc = f(c)
     S = (h / 6) * (fa + 4 * fc + fb)
-  return adaptive_simpsons_inner(f, a, b, accuracy, S, fa, fb, fc, max_iterations)
+    return adaptive_simpsons_inner(f, a, b, accuracy, S, fa, fb, fc, max_iterations)
 end
-adaptive_simpsons_outer(f::Function, a::Real, b::Real) = adaptive_simpsons_outer(f, a, b, 10e-10, 50)
 
-function monte_carlo(f::Function, a::Real, b::Real, iterations::Int)
+function monte_carlo(f::Function, a::Real, b::Real, iterations::Int=10_000)
     estimate = 0.0
     width = (b - a)
     for i in 1:iterations
@@ -38,13 +38,12 @@ function monte_carlo(f::Function, a::Real, b::Real, iterations::Int)
     return estimate / iterations
 end
 
-function integrate(f::Function, a::Real, b::Real, method::Symbol)
+function integrate(f::Function, a::Real, b::Real, method::Symbol=:simpsons)
     if method == :simpsons
         adaptive_simpsons_outer(f, a, b)
     elseif method == :monte_carlo
-        monte_carlo(f, a, b, 10_000)
+        monte_carlo(f, a, b)
     else
         error("Unknown method of integration: $(method)")
     end
 end
-integrate(f::Function, a::Real, b::Real) = integrate(f, a, b, :simpsons)
