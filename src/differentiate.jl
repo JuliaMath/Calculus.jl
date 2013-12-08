@@ -113,7 +113,8 @@ function differentiate(::SymbolParameter{:/}, args, wrt)
     end
 end
 
-
+# This table is used in other packages, and if someone changes it they should notify
+# * https://github.com/scidom/DualNumbers.jl
 derivative_rules = [
     ( :sqrt,        :(  xp / 2 / sqrt(x)                         ))
     ( :cbrt,        :(  xp / 3 / cbrt(x)^2                       ))
