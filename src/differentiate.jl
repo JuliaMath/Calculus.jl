@@ -226,29 +226,14 @@ end
 
 function differentiate(ex::Expr, targets::Vector{Symbol})
     n = length(targets)
-    exprs = Array(Expr, n)
+    exprs = Array(Any, n)
     for i in 1:n
         exprs[i] = differentiate(ex, targets[i])
     end
     return exprs
 end
 
-
 differentiate(ex::Expr) = differentiate(ex, :x)
-
-function differentiate(s::String, target::Symbol)
-    differentiate(parse(s), target)
-end
-function differentiate(s::String, targets::Vector{Symbol})
-    differentiate(parse(s), targets)
-end
-function differentiate(s::String, target::String)
-    differentiate(parse(s), symbol(target))
-end
-function differentiate{T <: String}(s::String, targets::Vector{T})
-    differentiate(parse(s), map(target -> symbol(target), targets))
-end
-function differentiate(s::String)
-    differentiate(parse(s), :x)
-end
-
+differentiate(s::String, target...) = differentiate(parse(s), target...)
+differentiate(s::String, target::String) = differentiate(parse(s), symbol(target))
+differentiate{T <: String}(s::String, targets::Vector{T}) = differentiate(parse(s), map(symbol, targets))
