@@ -6,8 +6,8 @@ Calculus.jl
 The Calculus package provides tools for working with the basic calculus
 operations of differentiation and integration. You can use the Calculus package to produce
 approximate derivatives by several forms of finite differencing or to
-produce exact derivative using symbolic differentiation, which is still
-a work in progress. You can also compute definite integrals by different numerical methods. 
+produce exact derivative using symbolic differentiation.
+You can also compute definite integrals by different numerical methods.
 
 # API
 
@@ -19,6 +19,8 @@ Most users will want to work with a limited set of basic functions:
 * `hessian()`: Use this for functions from R^n to R
 * `integrate()`: Use this to integrate functions from R to R
 * `differentiate()`: Use this to perform symbolic differentiation
+* `simplify()`: Use this to perform symbolic simplification
+* `deparse()`: Use this to get usual infix representation of expressions
 
 # Usage Examples
 
@@ -26,7 +28,7 @@ There are a few basic approaches to using the Calculus package:
 
 * Use finite-differencing to evaluate the derivative at a specific point
 * Use higher-order functions to create new functions that evaluate derivatives
-* Use Simpson's rule to evaluate definite integrals
+* Use integration by Simpson's rule or Monte Carlo method to evaluate definite integrals
 * Use symbolic differentiation to produce exact derivatives for simple functions
 
 ## Direct Finite Differencing
@@ -108,6 +110,13 @@ derivative you calculate:
 
 	# Compare with cos(pi) - cos(0)
 	integrate(x -> -sin(x), 0.0, pi)
+
+## Integration using Monte Carlo method
+
+	using Calculus
+
+	# Compare with cos(pi) - cos(0)
+	integrate(x -> -sin(x), 0.0, pi, :monte_carlo)
 
 ## Symbolic Differentiation
 
