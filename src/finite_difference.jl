@@ -14,29 +14,29 @@
 ##
 ##############################################################################
 
-macro forwardrule(x, T, e)
-    x, T, e = esc(x), esc(T), esc(e)
+macro forwardrule(x, e)
+    x, e = esc(x), esc(e)
     quote
-        $e = sqrt(eps($T)) * max(one($T), abs($x))
+        $e = sqrt(eps(eltype($x))) * max(one(eltype($x)), abs($x))
     end
 end
 
-macro centralrule(x, T, e)
-    x, T, e = esc(x), esc(T), esc(e)
+macro centralrule(x, e)
+    x, e = esc(x), esc(e)
     quote
-        $e = cbrt(eps($T)) * max(one($T), abs($x))
+        $e = cbrt(eps(eltype($x))) * max(one(eltype($x)), abs($x))
     end
 end
 
-macro hessianrule(x, T, e)
-    x, T, e = esc(x), esc(T), esc(e)
+macro hessianrule(x, e)
+    x, e = esc(x), esc(e)
     quote
-        $e = eps($T)^(1/4) * max(one($T), abs($x))
+        $e = eps(eltype($x))^(1/4) * max(one(eltype($x)), abs($x))
     end
 end
 
-macro complexrule(x, T, e)
-    x, T, e = esc(x), esc(T), esc(e)
+macro complexrule(x, e)
+    x, e = esc(x), esc(e)
     quote
         $e = eps($x)
     end
@@ -46,15 +46,15 @@ function finite_difference{T <: Number}(f::Function,
                                         x::T,
                                         dtype::Symbol = :central)
     if dtype == :forward
-        @forwardrule x T epsilon
+        @forwardrule x epsilon
         xplusdx = x + epsilon
         return (f(xplusdx) - f(x)) / epsilon
     elseif dtype == :central
-        @centralrule x T epsilon
+        @centralrule x epsilon
         xplusdx, xminusdx = x + epsilon, x - epsilon
         return (f(xplusdx) - f(xminusdx)) / (epsilon + epsilon)
     elseif dtype == :complex
-        @complexrule x T epsilon
+        @complexrule x epsilon
         xplusdx = x + epsilon * im
         return imag(f(xplusdx)) / epsilon
     else
@@ -111,7 +111,7 @@ function finite_difference!{S <: Number, T <: Number}(f::Function,
         # Establish a baseline value of f(x).
         f_x = f(x)
         for i = 1:n
-            @forwardrule x[i] S epsilon
+            @forwardrule x[i] epsilon
             oldx = x[i]
             x[i] = oldx + epsilon
             f_xplusdx = f(x)
@@ -120,7 +120,7 @@ function finite_difference!{S <: Number, T <: Number}(f::Function,
         end
     elseif dtype == :central
         for i = 1:n
-            @centralrule x[i] S epsilon
+            @centralrule x[i] epsilon
             oldx = x[i]
             x[i] = oldx + epsilon
             f_xplusdx = f(x)
@@ -142,7 +142,7 @@ function finite_difference{T <: Number}(f::Function,
     g = Array(Float64, length(x))
 
     # Mutate allocated gradient
-    finite_difference!(f, x, g, dtype)
+    finite_difference!(f, float(x), g, dtype)
 
     # Return mutated gradient
     return g
@@ -167,7 +167,7 @@ function finite_difference_jacobian!{R <: Number,
     # Iterate over each dimension of the gradient separately.
     if dtype == :forward
         for i = 1:n
-            @forwardrule x[i] R epsilon
+            @forwardrule x[i] epsilon
             oldx = x[i]
             x[i] = oldx + epsilon
             f_xplusdx = f(x)
@@ -176,7 +176,7 @@ function finite_difference_jacobian!{R <: Number,
         end
     elseif dtype == :central
         for i = 1:n
-            @centralrule x[i] R epsilon
+            @centralrule x[i] epsilon
             oldx = x[i]
             x[i] = oldx + epsilon
             f_xplusdx = f(x)
@@ -215,7 +215,7 @@ end
 
 function finite_difference_hessian{T <: Number}(f::Function,
                                                 x::T)
-    @hessianrule x T epsilon
+    @hessianrule x epsilon
     (f(x + epsilon) - 2*f(x) + f(x - epsilon))/epsilon^2
 end
 function finite_difference_hessian(f::Function,
@@ -244,16 +244,16 @@ function finite_difference_hessian!{S <: Number,
     fx = f(x)
     for i = 1:n
         xi = x[i]
-        @hessianrule x[i] S epsilon
+        @hessianrule x[i] epsilon
         xpp[i], xmm[i] = xi + epsilon, xi - epsilon
         H[i, i] = (f(xpp) - 2*fx + f(xmm)) / epsilon^2
-        @centralrule x[i] S epsiloni
+        @centralrule x[i] epsiloni
         xp = xi + epsiloni
         xm = xi - epsiloni
         xpp[i], xpm[i], xmp[i], xmm[i] = xp, xp, xm, xm
         for j = i+1:n
             xj = x[j]
-            @centralrule x[j] S epsilonj
+            @centralrule x[j] epsilonj
             xp = xj + epsilonj
             xm = xj - epsilonj
             xpp[j], xpm[j], xmp[j], xmm[j] = xp, xm, xp, xm

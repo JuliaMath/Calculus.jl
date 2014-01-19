@@ -1,22 +1,18 @@
 function derivative(f::Function, ftype::Symbol, dtype::Symbol)
   if ftype == :scalar
-    g(x::Number) = finite_difference(f, x, dtype)
+    g(x::Number) = finite_difference(f, float(x), dtype)
   elseif ftype == :vector
-    g(x::Vector) = finite_difference(f, x, dtype)
+    g(x::Vector) = finite_difference(f, float(x), dtype)
   else
     error("ftype must :scalar or :vector")
   end
   return g
 end
-derivative{T <: Number}(f::Function, x::Union(T, Vector{T}), dtype::Symbol) = finite_difference(f, x, dtype)
-derivative{T <: Number}(f::Function, x::Union(T, Vector{T})) = finite_difference(f, x, :central)
-derivative(f::Function, dtype::Symbol) = derivative(f, :scalar, dtype)
-derivative(f::Function) = derivative(f, :scalar, :central)
+derivative{T <: Number}(f::Function, x::Union(T, Vector{T}), dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
+derivative(f::Function, dtype::Symbol = :central) = derivative(f, :scalar, dtype)
 
-gradient(f::Function, dtype::Symbol) = derivative(f, :vector, dtype)
-gradient{T <: Number}(f::Function, x::Union(T, Vector{T}), dtype::Symbol) = finite_difference(f, x, dtype)
-gradient(f::Function) = derivative(f, :vector, :central)
-gradient{T <: Number}(f::Function, x::Union(T, Vector{T})) = finite_difference(f, x, :central)
+gradient{T <: Number}(f::Function, x::Union(T, Vector{T}), dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
+gradient(f::Function, dtype::Symbol = :central) = derivative(f, :vector, dtype)
 
 ctranspose(f::Function) = derivative(f)
 
