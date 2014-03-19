@@ -118,7 +118,9 @@ end
 derivative_rules = [
     ( :sqrt,        :(  xp / 2 / sqrt(x)                         ))
     ( :cbrt,        :(  xp / 3 / cbrt(x)^2                       ))
-    ( :square,      :(  xp * 2 * x                               ))
+    ( :square,      :(  xp * 2 * x                               )) # deprecated
+    ( :abs2,        :(  xp * 2 * x                               ))
+    ( :inv,         :( -xp * abs2(inv(x))                        ))
     ( :log,         :(  xp / x                                   ))
     ( :log10,       :(  xp / x / log(10)                         ))
     ( :log2,        :(  xp / x / log(2)                          ))
