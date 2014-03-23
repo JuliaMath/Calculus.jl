@@ -16,5 +16,5 @@ println("Running tests:")
 
 for t in tests
     println(" * $(t)")
-    include("test/$(t).jl")
+    include("$(t).jl")
 end
