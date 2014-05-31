@@ -113,83 +113,99 @@ function differentiate(::SymbolParameter{:/}, args, wrt)
     end
 end
 
-# This table is used in other packages, and if someone changes it they should notify
-# * https://github.com/scidom/DualNumbers.jl
-derivative_rules = [
-    ( :sqrt,        :(  xp / 2 / sqrt(x)                         ))
-    ( :cbrt,        :(  xp / 3 / cbrt(x)^2                       ))
-    ( :square,      :(  xp * 2 * x                               )) # deprecated
-    ( :abs2,        :(  xp * 2 * x                               ))
-    ( :inv,         :( -xp * abs2(inv(x))                        ))
-    ( :log,         :(  xp / x                                   ))
-    ( :log10,       :(  xp / x / log(10)                         ))
-    ( :log2,        :(  xp / x / log(2)                          ))
-    ( :log1p,       :(  xp / (x + 1)                             ))
-    ( :exp,         :(  xp * exp(x)                              ))
-    ( :exp2,        :(  xp * log(2) * exp2(x)                    ))
-    ( :expm1,       :(  xp * exp(x)                              ))
-    ( :sin,         :(  xp * cos(x)                              ))
-    ( :cos,         :( -xp * sin(x)                              ))
-    ( :tan,         :(  xp * (1 + tan(x)^2)                      ))
-    ( :sec,         :(  xp * sec(x) * tan(x)                     ))
-    ( :csc,         :( -xp * csc(x) * cot(x)                     ))
-    ( :cot,         :( -xp * (1 + cot(x)^2)                      ))
-    ( :sind,        :(  xp * pi / 180 * cosd(x)                  ))
-    ( :cosd,        :( -xp * pi / 180 * sind(x)                  ))
-    ( :tand,        :(  xp * pi / 180 * (1 + tand(x)^2)          ))
-    ( :secd,        :(  xp * pi / 180 * secd(x) * tand(x)        ))
-    ( :cscd,        :( -xp * pi / 180 * cscd(x) * cotd(x)        ))
-    ( :cotd,        :( -xp * pi / 180 * (1 + cotd(x)^2)          ))
-    ( :asin,        :(  xp / sqrt(1 - x^2)                       ))
-    ( :acos,        :( -xp / sqrt(1 - x^2)                       ))
-    ( :atan,        :(  xp / (1 + x^2)                           ))
-    ( :asec,        :(  xp / abs(x) / sqrt(x^2 - 1)              ))
-    ( :acsc,        :( -xp / abs(x) / sqrt(x^2 - 1)              ))
-    ( :acot,        :( -xp / (1 + x^2)                           ))
-    ( :asind,       :(  xp * 180 / pi / sqrt(1 - x^2)            ))
-    ( :acosd,       :( -xp * 180 / pi / sqrt(1 - x^2)            ))
-    ( :atand,       :(  xp * 180 / pi / (1 + x^2)                ))
-    ( :asecd,       :(  xp * 180 / pi / abs(x) / sqrt(x^2 - 1)   ))
-    ( :acscd,       :( -xp * 180 / pi / abs(x) / sqrt(x^2 - 1)   ))
-    ( :acotd,       :( -xp * 180 / pi / (1 + x^2)                ))
-    ( :sinh,        :(  xp * cosh(x)                             ))
-    ( :cosh,        :(  xp * sinh(x)                             ))
-    ( :tanh,        :(  xp * sech(x)^2                           ))
-    ( :sech,        :( -xp * tanh(x) * sech(x)                   ))
-    ( :csch,        :( -xp * coth(x) * csch(x)                   ))
-    ( :coth,        :( -xp * csch(x)^2                           ))
-    ( :asinh,       :(  xp / sqrt(x^2 + 1)                       ))
-    ( :acosh,       :(  xp / sqrt(x^2 - 1)                       ))
-    ( :atanh,       :(  xp / (1 - x^2)                           ))
-    ( :asech,       :( -xp / x / sqrt(1 - x^2)                   ))
-    ( :acsch,       :( -xp / abs(x) / sqrt(1 + x^2)              ))
-    ( :acoth,       :(  xp / (1 - x^2)                           ))
-    ( :erf,         :(  xp * 2 * exp(-square(x)) / sqrt(pi)      ))
-    ( :erfc,        :( -xp * 2 * exp(-square(x)) / sqrt(pi)      ))
-    ( :erfi,        :(  xp * 2 * exp(square(x)) / sqrt(pi)       ))
-    ( :gamma,       :(  xp * digamma(x) * gamma(x)               ))
-    ( :lgamma,      :(  xp * digamma(x)                          ))
-    ( :airy,        :(  xp * airyprime(x)                        ))  # note: only covers the 1-arg version
-    ( :airyprime,   :(  xp * airy(2, x)                          ))
-    ( :airyai,      :(  xp * airyaiprime(x)                      ))
-    ( :airybi,      :(  xp * airybiprime(x)                      ))
-    ( :airyaiprime, :(  xp * x * airyai(x)                       ))
-    ( :airybiprime, :(  xp * x * airybi(x)                       ))
-    ( :besselj0,    :( -xp * besselj1(x)                         ))
-    ( :besselj1,    :(  xp * (besselj0(x) - besselj(2, x)) / 2   ))
-    ( :bessely0,    :( -xp * bessely1(x)                         ))
-    ( :bessely1,    :(  xp * (bessely0(x) - bessely(2, x)) / 2   ))
-    ## ( :erfcx,   :(  xp * (2 * x * erfcx(x) - 2 / sqrt(pi))   ))  # uncertain
-    ## ( :dawson,  :(  xp * (1 - 2x * dawson(x))                ))  # uncertain
+symbolic_derivative_1arg_list = [
+    ( :sqrt,        :(  1 / 2 / sqrt(x)                         ))
+    ( :cbrt,        :(  1 / 3 / cbrt(x)^2                       ))
+    ( :abs2,        :(  1 * 2 * x                               ))
+    ( :inv,         :( -1 * abs2(inv(x))                        ))
+    ( :log,         :(  1 / x                                   ))
+    ( :log10,       :(  1 / x / log(10)                         ))
+    ( :log2,        :(  1 / x / log(2)                          ))
+    ( :log1p,       :(  1 / (x + 1)                             ))
+    ( :exp,         :(  exp(x)                                  ))
+    ( :exp2,        :(  log(2) * exp2(x)                        ))
+    ( :expm1,       :(  exp(x)                                  ))
+    ( :sin,         :(  cos(x)                                  ))
+    ( :cos,         :( -sin(x)                                  ))
+    ( :tan,         :(  (1 + tan(x)^2)                          ))
+    ( :sec,         :(  sec(x) * tan(x)                         ))
+    ( :csc,         :( -csc(x) * cot(x)                         ))
+    ( :cot,         :( -(1 + cot(x)^2)                          ))
+    ( :sind,        :(  pi / 180 * cosd(x)                      ))
+    ( :cosd,        :( -pi / 180 * sind(x)                      ))
+    ( :tand,        :(  pi / 180 * (1 + tand(x)^2)              ))
+    ( :secd,        :(  pi / 180 * secd(x) * tand(x)            ))
+    ( :cscd,        :( -pi / 180 * cscd(x) * cotd(x)            ))
+    ( :cotd,        :( -pi / 180 * (1 + cotd(x)^2)              ))
+    ( :asin,        :(  1 / sqrt(1 - x^2)                       ))
+    ( :acos,        :( -1 / sqrt(1 - x^2)                       ))
+    ( :atan,        :(  1 / (1 + x^2)                           ))
+    ( :asec,        :(  1 / abs(x) / sqrt(x^2 - 1)              ))
+    ( :acsc,        :( -1 / abs(x) / sqrt(x^2 - 1)              ))
+    ( :acot,        :( -1 / (1 + x^2)                           ))
+    ( :asind,       :(  180 / pi / sqrt(1 - x^2)                ))
+    ( :acosd,       :( -180 / pi / sqrt(1 - x^2)                ))
+    ( :atand,       :(  180 / pi / (1 + x^2)                    ))
+    ( :asecd,       :(  180 / pi / abs(x) / sqrt(x^2 - 1)       ))
+    ( :acscd,       :( -180 / pi / abs(x) / sqrt(x^2 - 1)       ))
+    ( :acotd,       :( -180 / pi / (1 + x^2)                    ))
+    ( :sinh,        :(  cosh(x)                                 ))
+    ( :cosh,        :(  sinh(x)                                 ))
+    ( :tanh,        :(  sech(x)^2                               ))
+    ( :sech,        :( -tanh(x) * sech(x)                       ))
+    ( :csch,        :( -coth(x) * csch(x)                       ))
+    ( :coth,        :( -csch(x)^2                               ))
+    ( :asinh,       :(  1 / sqrt(x^2 + 1)                       ))
+    ( :acosh,       :(  1 / sqrt(x^2 - 1)                       ))
+    ( :atanh,       :(  1 / (1 - x^2)                           ))
+    ( :asech,       :( -1 / x / sqrt(1 - x^2)                   ))
+    ( :acsch,       :( -1 / abs(x) / sqrt(1 + x^2)              ))
+    ( :acoth,       :(  1 / (1 - x^2)                           ))
+    ( :erf,         :(  2 * exp(-square(x)) / sqrt(pi)          ))
+    ( :erfc,        :( -2 * exp(-square(x)) / sqrt(pi)          ))
+    ( :erfi,        :(  2 * exp(square(x)) / sqrt(pi)           ))
+    ( :gamma,       :(  digamma(x) * gamma(x)                   ))
+    ( :lgamma,      :(  digamma(x)                              ))
+    ( :airy,        :(  airyprime(x)                            ))  # note: only covers the 1-arg version
+    ( :airyprime,   :(  airy(2, x)                              ))
+    ( :airyai,      :(  airyaiprime(x)                          ))
+    ( :airybi,      :(  airybiprime(x)                          ))
+    ( :airyaiprime, :(  x * airyai(x)                           ))
+    ( :airybiprime, :(  x * airybi(x)                           ))
+    ( :besselj0,    :( -besselj1(x)                             ))
+    ( :besselj1,    :(  (besselj0(x) - besselj(2, x)) / 2       ))
+    ( :bessely0,    :( -bessely1(x)                             ))
+    ( :bessely1,    :(  (bessely0(x) - bessely(2, x)) / 2       ))
+    ## ( :erfcx,   :(  (2 * x * erfcx(x) - 2 / sqrt(pi))   ))  # uncertain
+    ## ( :dawson,  :(  (1 - 2x * dawson(x))                ))  # uncertain
 
 ]
 
-for (funsym, exp) in derivative_rules 
+
+# This is the public interface for accessing the list of symbolic
+# derivatives. The format is a list of (Symbol,Expr) tuples
+# (:f, deriv_expr), where deriv_expr is a symbolic
+# expression for the first derivative of the function f.
+# The symbol :x is used within deriv_expr for the point at
+# which the derivative should be evaluated.
+symbolic_derivatives_1arg() = symbolic_derivative_1arg_list
+export symbolic_derivatives_1arg
+
+
+# deprecated: for backward compatibility with packages that used
+# this unexported interface.
+derivative_rules = Array((Symbol,Expr),0)
+for (s,ex) in symbolic_derivative_1arg_list
+    push!(derivative_rules, (s, :(xp*$ex)))
+end
+
+
+for (funsym, exp) in symbolic_derivative_1arg_list
     @eval function differentiate(::SymbolParameter{$(Meta.quot(funsym))}, args, wrt)
         x = args[1]
         xp = differentiate(x, wrt)
         if xp != 0
-            return @sexpr($exp)
+            return @sexpr(xp*$exp)
         else
             return 0
         end
