@@ -262,7 +262,7 @@ function finite_difference_hessian!{S <: Number,
         end
         xpp[i], xpm[i], xmp[i], xmm[i] = xi, xi, xi, xi
     end
-    symmetrize!(H)
+    Base.LinAlg.copytri!(H,'U')
 end
 function finite_difference_hessian{T <: Number}(f::Function,
                                                 x::Vector{T})

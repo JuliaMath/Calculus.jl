@@ -10,8 +10,8 @@ f1(x::Real) = sin(x)
 @test norm(derivative(f1)(0.0) - cos(0.0)) < 10e-4
 
 f2(x::Vector) = sin(x[1])
-@test norm(derivative(f2, :vector, :forward)([0.0]) - cos(0.0)) < 10e-4
-@test norm(derivative(f2, :vector, :central)([0.0]) - cos(0.0)) < 10e-4
+@test norm(derivative(f2, :vector, :forward)([0.0]) .- cos(0.0)) < 10e-4
+@test norm(derivative(f2, :vector, :central)([0.0]) .- cos(0.0)) < 10e-4
 
 #
 # ctranspose overloading
