@@ -28,8 +28,7 @@
 @test isequal(differentiate(:(sin(sin(x))), :x), :(*(cos(x),cos(sin(x)))))
 @test isequal(differentiate(:(sin(cos(x) + sin(x))), :x), :(*(+(-sin(x),cos(x)),cos(+(cos(x),sin(x))))))
 @test isequal(differentiate(:(exp(-x)), :x), :(-exp(-x)))
-@test isequal(differentiate(:(log(x^2)), :x), :(/(*(2,x),^(x,2))))
-@test isequal(differentiate(:(square(x)), :x), :(2x)) # deprecated
+@test isequal(differentiate(:(log(x^2)), :x), :((2x) * (1 / x^2)))
 @test isequal(differentiate(:(abs2(x)), :x), :(2x))
 @test isequal(differentiate(:(inv(x)), :x), :(-abs2(inv(x))))
 @test isequal(differentiate(:(x^n), :x), :(*(n, ^(x, -(n, 1)))))
