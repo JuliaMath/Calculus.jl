@@ -36,38 +36,38 @@ There are a few basic approaches to using the Calculus package:
 	using Calculus
 
 	# Compare with cos(0.0)
-	derivative(x -> sin(x), 0.0)
+	derivative(sin, 0.0)
 	# Compare with cos(1.0)
-	derivative(x -> sin(x), 1.0)
+	derivative(sin, 1.0)
 	# Compare with cos(pi)
-	derivative(x -> sin(x), pi)
+	derivative(sin, float64(pi))
 
 	# Compare with [cos(0.0), -sin(0.0)]
 	gradient(x -> sin(x[1]) + cos(x[2]), [0.0, 0.0])
 	# Compare with [cos(1.0), -sin(1.0)]
 	gradient(x -> sin(x[1]) + cos(x[2]), [1.0, 1.0])
 	# Compare with [cos(pi), -sin(pi)]
-	gradient(x -> sin(x[1]) + cos(x[2]), [pi, pi])
+	gradient(x -> sin(x[1]) + cos(x[2]), [float64(pi), float64(pi)])
 
 	# Compare with -sin(0.0)
-	second_derivative(x -> sin(x), 0.0)
+	second_derivative(sin, 0.0)
 	# Compare with -sin(1.0)
-	second_derivative(x -> sin(x), 1.0)
+	second_derivative(sin, 1.0)
 	# Compare with -sin(pi)
-	second_derivative(x -> sin(x), pi)
+	second_derivative(sin, float64(pi))
 
 	# Compare with [-sin(0.0) 0.0; 0.0 -cos(0.0)]
 	hessian(x -> sin(x[1]) + cos(x[2]), [0.0, 0.0])
 	# Compare with [-sin(1.0) 0.0; 0.0 -cos(1.0)]
 	hessian(x -> sin(x[1]) + cos(x[2]), [1.0, 1.0])
 	# Compare with [-sin(pi) 0.0; 0.0 -cos(pi)]
-	hessian(x -> sin(x[1]) + cos(x[2]), [pi, pi])
+	hessian(x -> sin(x[1]) + cos(x[2]), [float64(pi), float64(pi)])
 
 ## Higher-Order Functions
 
 	using Calculus
 
-	g1 = derivative(x -> sin(x))
+	g1 = derivative(sin)
 	g1(0.0)
 	g1(1.0)
 	g1(pi)
@@ -77,7 +77,7 @@ There are a few basic approaches to using the Calculus package:
 	g2([1.0, 1.0])
 	g2([pi, pi])
 
-	h1 = second_derivative(x -> sin(x))
+	h1 = second_derivative(sin)
 	h1(0.0)
 	h1(1.0)
 	h1(pi)
@@ -109,14 +109,14 @@ derivative you calculate:
 	integrate(x -> 1 / x, 1.0, 2.0)
 
 	# Compare with cos(pi) - cos(0)
-	integrate(x -> -sin(x), 0.0, pi)
+	integrate(x -> -sin(x), 0.0, float64(pi))
 
 ## Integration using Monte Carlo method
 
 	using Calculus
 
 	# Compare with cos(pi) - cos(0)
-	integrate(x -> -sin(x), 0.0, pi, :monte_carlo)
+	integrate(x -> -sin(x), 0.0, float64(pi), :monte_carlo)
 
 ## Symbolic Differentiation
 
