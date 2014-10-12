@@ -105,7 +105,7 @@ end
 
 function sum_numeric_args(args)
     sum = 0
-    sym_args = {}
+    sym_args = Any[]
     for arg in args
         if isnumber(arg)
             sum += arg
@@ -118,7 +118,7 @@ end
 
 function mul_numeric_args(args)
     prod = 1
-    sym_args = {}
+    sym_args = Any[]
     for arg in args
         if isnumber(arg)
             prod *= arg

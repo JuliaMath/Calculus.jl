@@ -38,7 +38,7 @@ function differentiate(::SymbolParameter{:^}, args, wrt)
 end
 
 function differentiate(::SymbolParameter{:+}, args, wrt)
-    termdiffs = {:+}
+    termdiffs = Any[:+]
     for y in args
         x = differentiate(y, wrt)
         if x != 0
@@ -55,7 +55,7 @@ function differentiate(::SymbolParameter{:+}, args, wrt)
 end
 
 function differentiate(::SymbolParameter{:-}, args, wrt)
-    termdiffs = {:-}
+    termdiffs = Any[:-]
     # first term is special, can't be dropped
     term1 = differentiate(args[1], wrt)
     push!(termdiffs, term1)
