@@ -91,3 +91,10 @@ end
 @test isequal(simplify(:(x*3)), :(*(3,x)))
 @test isequal(simplify(:(x*3*4)), :(*(12,x)))
 @test isequal(simplify(:(2*y*x*3)), :(*(6,y,x)))
+
+#
+# Tests with ifelse
+#
+@test isequal(differentiate(:(ifelse(x < 1, exp(x^2), 1/x)), :x), :(ifelse(x < 1,2x * exp(x^2), -1/x^2)))
+@test isequal(differentiate(:(ifelse(x <= 0, 0, ifelse(x > 1, 1, x))), : x), 
+														:(ifelse(x <= 0, 0, ifelse(x > 1, 0, 1))))
