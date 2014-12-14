@@ -1,4 +1,5 @@
 module Calculus
+    import Compat
     import Base.ctranspose
     export check_derivative,
            check_gradient,

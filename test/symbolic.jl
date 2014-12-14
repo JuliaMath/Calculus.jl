@@ -40,7 +40,7 @@
 #
 
 @test isequal(differentiate(:(sin(x) + sin(y)), [:x, :y]), [:(cos(x)), :(cos(y))])
-@test isequal(differentiate(:(x^2), [:x, :y]), {:(2*x), 0})
+@test isequal(differentiate(:(x^2), [:x, :y]), Any[:(2*x), 0])
 
 # TODO: Get the generalized power rule right.
 # @test isequal(differentiate(:(sin(x)^2), :x), :(2 * sin(x) * cos(x)))
