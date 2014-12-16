@@ -221,6 +221,15 @@ derivative_rules_bessel = [
     ( :hankelh2,   :(  xp * (hankelh2(nu - 1, x) - hankelh2(nu + 1, x)) / 2 ))
 ]
 
+
+# This is the public interface for accessing the list of symbolic
+# derivatives. The format is a list of (Symbol,Expr) tuples
+# (:f, deriv_expr), where deriv_expr is a symbolic
+# expression for the first derivative of the function f.
+# The symbol :nu and :x are used within deriv_expr
+# :nu specifies the first parameter of the bessel
+# function (usually written n or alpha)
+# :x gives the point at which the derivative should be evaluated.
 symbolic_derivative_bessel_list() = derivative_rules_bessel
 export symbolic_derivative_bessel_list
 
