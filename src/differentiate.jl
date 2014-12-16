@@ -225,7 +225,7 @@ derivative_rules_bessel = [
 # This is the public interface for accessing the list of symbolic
 # derivatives. The format is a list of (Symbol,Expr) tuples
 # (:f, deriv_expr), where deriv_expr is a symbolic
-# expression for the first derivative of the function f.
+# expression for the first derivative of the function f with respect to x.
 # The symbol :nu and :x are used within deriv_expr
 # :nu specifies the first parameter of the bessel
 # function (usually written n or alpha)
