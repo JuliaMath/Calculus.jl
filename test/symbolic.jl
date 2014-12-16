@@ -91,3 +91,11 @@ end
 @test isequal(simplify(:(x*3)), :(*(3,x)))
 @test isequal(simplify(:(x*3*4)), :(*(12,x)))
 @test isequal(simplify(:(2*y*x*3)), :(*(6,y,x)))
+
+@test isequal(simplify(:(x/x)), 1.0)
+@test isequal(simplify(:((2*x)/x)), 2.0)
+@test isequal(simplify(:(x/(2*x))), 0.5)
+@test isequal(simplify(:((2*y)/x)), :(/(*(2,y),x)))
+@test isequal(simplify(:((5*x)/(2*x))), 2.5)
+@test isequal(simplify(:((y*x*5)/(2*x))), :(5*y/2))
+@test isequal(simplify(:((5*z)/(2*x))), :((5*z)/(2*x)))
