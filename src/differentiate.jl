@@ -213,12 +213,12 @@ for (funsym, exp) in symbolic_derivative_1arg_list
 end
 
 derivative_rules_bessel = [
-    ( :besselj,    :(  xp * (besselj(nu - 1, x) - besselj(nu + 1, x)) / 2   ))
-    ( :besseli,    :(  xp * (besseli(nu - 1, x) + besseli(nu + 1, x)) / 2   ))
-    ( :bessely,    :(  xp * (bessely(nu - 1, x) - bessely(nu + 1, x)) / 2   ))
-    ( :besselk,    :( -xp * (besselk(nu - 1, x) + besselk(nu + 1, x)) / 2   ))
-    ( :hankelh1,   :(  xp * (hankelh1(nu - 1, x) - hankelh1(nu + 1, x)) / 2 ))
-    ( :hankelh2,   :(  xp * (hankelh2(nu - 1, x) - hankelh2(nu + 1, x)) / 2 ))
+    ( :besselj,    :(   * (besselj(nu - 1, x) - besselj(nu + 1, x)) / 2   ))
+    ( :besseli,    :(   * (besseli(nu - 1, x) + besseli(nu + 1, x)) / 2   ))
+    ( :bessely,    :(   * (bessely(nu - 1, x) - bessely(nu + 1, x)) / 2   ))
+    ( :besselk,    :( -1 * (besselk(nu - 1, x) + besselk(nu + 1, x)) / 2   ))
+    ( :hankelh1,   :(   * (hankelh1(nu - 1, x) - hankelh1(nu + 1, x)) / 2 ))
+    ( :hankelh2,   :(   * (hankelh2(nu - 1, x) - hankelh2(nu + 1, x)) / 2 ))
 ]
 
 
@@ -240,7 +240,7 @@ for (funsym, exp) in derivative_rules_bessel
         x = args[2]
         xp = differentiate(x, wrt)
         if xp != 0
-            return @sexpr($exp)
+            return @sexpr(xp*$exp)
         else
             return 0
         end
