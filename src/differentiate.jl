@@ -254,6 +254,11 @@ end
 ## hypot
 ## beta, lbeta, eta, zeta, digamma
 
+## Differentiate for piecewise functions defined using ifelse
+function differentiate(::SymbolParameter{:ifelse}, args, wrt)
+	:(ifelse($(args[1]), $(differentiate(args[2],wrt)),$(differentiate(args[3],wrt))))
+end
+
 function differentiate(ex::Expr, targets::Vector{Symbol})
     n = length(targets)
     exprs = Array(Any, n)
