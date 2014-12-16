@@ -222,7 +222,7 @@ derivative_rules_bessel = [
 ]
 
 # 2-argument bessel functions
-for (funsym, exp) in derivative_rules_bessel 
+for (funsym, exp) in derivative_rules_bessel
     @eval function differentiate(::SymbolParameter{$(Meta.quot(funsym))}, args, wrt)
         nu = args[1]
         x = args[2]
@@ -239,7 +239,7 @@ end
 ### derivatives for. Some have two arguments.
 
 ## atan2
-## hypot 
+## hypot
 ## beta, lbeta, eta, zeta, digamma
 
 function differentiate(ex::Expr, targets::Vector{Symbol})
