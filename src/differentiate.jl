@@ -213,22 +213,34 @@ for (funsym, exp) in symbolic_derivative_1arg_list
 end
 
 derivative_rules_bessel = [
-    ( :besselj,    :(  xp * (besselj(nu - 1, x) - besselj(nu + 1, x)) / 2   ))
-    ( :besseli,    :(  xp * (besseli(nu - 1, x) + besseli(nu + 1, x)) / 2   ))
-    ( :bessely,    :(  xp * (bessely(nu - 1, x) - bessely(nu + 1, x)) / 2   ))
-    ( :besselk,    :( -xp * (besselk(nu - 1, x) + besselk(nu + 1, x)) / 2   ))
-    ( :hankelh1,   :(  xp * (hankelh1(nu - 1, x) - hankelh1(nu + 1, x)) / 2 ))
-    ( :hankelh2,   :(  xp * (hankelh2(nu - 1, x) - hankelh2(nu + 1, x)) / 2 ))
+    ( :besselj,    :(   * (besselj(nu - 1, x) - besselj(nu + 1, x)) / 2   ))
+    ( :besseli,    :(   * (besseli(nu - 1, x) + besseli(nu + 1, x)) / 2   ))
+    ( :bessely,    :(   * (bessely(nu - 1, x) - bessely(nu + 1, x)) / 2   ))
+    ( :besselk,    :( -1 * (besselk(nu - 1, x) + besselk(nu + 1, x)) / 2   ))
+    ( :hankelh1,   :(   * (hankelh1(nu - 1, x) - hankelh1(nu + 1, x)) / 2 ))
+    ( :hankelh2,   :(   * (hankelh2(nu - 1, x) - hankelh2(nu + 1, x)) / 2 ))
 ]
 
+
+# This is the public interface for accessing the list of symbolic
+# derivatives. The format is a list of (Symbol,Expr) tuples
+# (:f, deriv_expr), where deriv_expr is a symbolic
+# expression for the first derivative of the function f with respect to x.
+# The symbol :nu and :x are used within deriv_expr
+# :nu specifies the first parameter of the bessel
+# function (usually written n or alpha)
+# :x gives the point at which the derivative should be evaluated.
+symbolic_derivative_bessel_list() = derivative_rules_bessel
+export symbolic_derivative_bessel_list
+
 # 2-argument bessel functions
-for (funsym, exp) in derivative_rules_bessel 
+for (funsym, exp) in derivative_rules_bessel
     @eval function differentiate(::SymbolParameter{$(Meta.quot(funsym))}, args, wrt)
         nu = args[1]
         x = args[2]
         xp = differentiate(x, wrt)
         if xp != 0
-            return @sexpr($exp)
+            return @sexpr(xp*$exp)
         else
             return 0
         end
@@ -239,7 +251,7 @@ end
 ### derivatives for. Some have two arguments.
 
 ## atan2
-## hypot 
+## hypot
 ## beta, lbeta, eta, zeta, digamma
 
 function differentiate(ex::Expr, targets::Vector{Symbol})
