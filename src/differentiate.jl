@@ -221,6 +221,9 @@ derivative_rules_bessel = [
     ( :hankelh2,   :(  xp * (hankelh2(nu - 1, x) - hankelh2(nu + 1, x)) / 2 ))
 ]
 
+symbolic_derivative_bessel_list() = derivative_rules_bessel
+export symbolic_derivative_bessel_list
+
 # 2-argument bessel functions
 for (funsym, exp) in derivative_rules_bessel
     @eval function differentiate(::SymbolParameter{$(Meta.quot(funsym))}, args, wrt)
