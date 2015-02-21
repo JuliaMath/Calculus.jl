@@ -1,6 +1,9 @@
 Calculus.jl
 ===========
 
+[![Build Status](https://travis-ci.org/johnmyleswhite/Calculus.jl.svg?branch=master)](https://travis-ci.org/johnmyleswhite/Calculus.jl)
+[![Calculus](http://pkg.julialang.org/badges/Calculus_release.svg)](http://pkg.julialang.org/?pkg=Calculus&ver=release)
+
 # Introduction
 
 The Calculus package provides tools for working with the basic calculus
