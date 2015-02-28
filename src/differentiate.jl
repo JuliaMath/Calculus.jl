@@ -166,7 +166,8 @@ symbolic_derivative_1arg_list = [
     ( :erfi,        :(  2 * exp(square(x)) / sqrt(pi)           ))
     ( :gamma,       :(  digamma(x) * gamma(x)                   ))
     ( :lgamma,      :(  digamma(x)                              ))
-    ( :digamma,     :(  polygamma(1, x)                         ))
+    ( :digamma,     :(  trigamma(x)                             ))
+    ( :trigamma,    :(  polygamma(2, x)                         ))
     ( :airy,        :(  airyprime(x)                            ))  # note: only covers the 1-arg version
     ( :airyprime,   :(  airy(2, x)                              ))
     ( :airyai,      :(  airyaiprime(x)                          ))
