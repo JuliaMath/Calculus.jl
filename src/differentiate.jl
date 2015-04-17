@@ -195,7 +195,11 @@ export symbolic_derivatives_1arg
 
 # deprecated: for backward compatibility with packages that used
 # this unexported interface.
-derivative_rules = Array((Symbol,Expr),0)
+if VERSION < v"0.4.0-dev+4319"
+    derivative_rules = Array((Symbol,Expr),0)
+else
+    derivative_rules = Array(Tuple{Symbol,Expr},0)
+end
 for (s,ex) in symbolic_derivative_1arg_list
     push!(derivative_rules, (s, :(xp*$ex)))
 end
