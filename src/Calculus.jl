@@ -14,6 +14,8 @@ module Calculus
            jacobian,
            second_derivative
 
+    import Base: gradient
+
     # TODO: Debate type system more carefully
     # abstract BundledFunction
     # abstract ScalarFunction
