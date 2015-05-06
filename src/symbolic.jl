@@ -140,7 +140,7 @@ function simplify(::SymbolParameter{:+}, args)
         return args[1]
     else
         (sum, sym_args) = sum_numeric_args(args)
-        args = sum==0 ? sym_args : [sum, sym_args]
+        args = sum==0 ? sym_args : [sum; sym_args]
         return Expr(:call, :+, args...)
     end
 end
@@ -182,7 +182,7 @@ function simplify(::SymbolParameter{:*}, args)
         return Expr(:call, :-, args[2])
     else
         (prod, sym_args) = mul_numeric_args(args)
-        args = prod==1 ? sym_args : [prod, sym_args]
+        args = prod==1 ? sym_args : [prod; sym_args]
         return Expr(:call, :*, args...)
     end
 end

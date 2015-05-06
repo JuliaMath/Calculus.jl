@@ -161,9 +161,9 @@ symbolic_derivative_1arg_list = [
     ( :asech,       :( -1 / x / sqrt(1 - x^2)                   ))
     ( :acsch,       :( -1 / abs(x) / sqrt(1 + x^2)              ))
     ( :acoth,       :(  1 / (1 - x^2)                           ))
-    ( :erf,         :(  2 * exp(-square(x)) / sqrt(pi)          ))
-    ( :erfc,        :( -2 * exp(-square(x)) / sqrt(pi)          ))
-    ( :erfi,        :(  2 * exp(square(x)) / sqrt(pi)           ))
+    ( :erf,         :(  2 * exp(-x*x) / sqrt(pi)                ))
+    ( :erfc,        :( -2 * exp(-x*x) / sqrt(pi)                ))
+    ( :erfi,        :(  2 * exp(x*x) / sqrt(pi)                 ))
     ( :gamma,       :(  digamma(x) * gamma(x)                   ))
     ( :lgamma,      :(  digamma(x)                              ))
     ( :digamma,     :(  trigamma(x)                             ))
@@ -196,7 +196,7 @@ export symbolic_derivatives_1arg
 
 # deprecated: for backward compatibility with packages that used
 # this unexported interface.
-derivative_rules = Array((Symbol,Expr),0)
+derivative_rules = Array(@Compat.compat(Tuple{Symbol,Expr}),0)
 for (s,ex) in symbolic_derivative_1arg_list
     push!(derivative_rules, (s, :(xp*$ex)))
 end

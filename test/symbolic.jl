@@ -96,5 +96,5 @@ end
 # Tests with ifelse
 #
 @test isequal(differentiate(:(ifelse(x < 1, exp(x^2), 1/x)), :x), :(ifelse(x < 1,2x * exp(x^2), -1/x^2)))
-@test isequal(differentiate(:(ifelse(x <= 0, 0, ifelse(x > 1, 1, x))), : x), 
+@test isequal(differentiate(:(ifelse(x <= 0, 0, ifelse(x > 1, 1, x))), :x),
 														:(ifelse(x <= 0, 0, ifelse(x > 1, 0, 1))))
