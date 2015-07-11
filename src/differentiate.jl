@@ -6,7 +6,7 @@ export differentiate
 # differentiate()
 #   based on John's differentiate and this code, I think by Miles Lubin:
 #     https://github.com/IainNZ/NLTester/blob/master/julia/nlp.jl#L74
-#   
+#
 #################################################################
 
 differentiate(ex::SymbolicVariable, wrt::SymbolicVariable) = (ex == wrt) ? 1 : 0
@@ -33,7 +33,7 @@ function differentiate(::SymbolParameter{:^}, args, wrt)
     elseif yp == 0
         return :( $y * $xp * ($x ^ ($y - 1)) )
     else
-        return :( $x ^ $y * ($xp * $y / $x + $yp * log($x)) ) 
+        return :( $x ^ $y * ($xp * $y / $x + $yp * log($x)) )
     end
 end
 
@@ -116,6 +116,7 @@ end
 symbolic_derivative_1arg_list = [
     ( :sqrt,        :(  1 / 2 / sqrt(x)                         ))
     ( :cbrt,        :(  1 / 3 / cbrt(x)^2                       ))
+    ( :abs,         :(  sign(x)                                 ))
     ( :abs2,        :(  1 * 2 * x                               ))
     ( :inv,         :( -1 * abs2(inv(x))                        ))
     ( :log,         :(  1 / x                                   ))
