@@ -6,7 +6,7 @@ export differentiate
 # differentiate()
 #   based on John's differentiate and this code, I think by Miles Lubin:
 #     https://github.com/IainNZ/NLTester/blob/master/julia/nlp.jl#L74
-#   
+#
 #################################################################
 
 differentiate(ex::SymbolicVariable, wrt::SymbolicVariable) = (ex == wrt) ? 1 : 0
@@ -33,7 +33,7 @@ function differentiate(::SymbolParameter{:^}, args, wrt)
     elseif yp == 0
         return :( $y * $xp * ($x ^ ($y - 1)) )
     else
-        return :( $x ^ $y * ($xp * $y / $x + $yp * log($x)) ) 
+        return :( $x ^ $y * ($xp * $y / $x + $yp * log($x)) )
     end
 end
 
@@ -215,12 +215,12 @@ for (funsym, exp) in symbolic_derivative_1arg_list
 end
 
 derivative_rules_bessel = [
-    ( :besselj,    :(   * (besselj(nu - 1, x) - besselj(nu + 1, x)) / 2   ))
-    ( :besseli,    :(   * (besseli(nu - 1, x) + besseli(nu + 1, x)) / 2   ))
-    ( :bessely,    :(   * (bessely(nu - 1, x) - bessely(nu + 1, x)) / 2   ))
-    ( :besselk,    :( -1 * (besselk(nu - 1, x) + besselk(nu + 1, x)) / 2   ))
-    ( :hankelh1,   :(   * (hankelh1(nu - 1, x) - hankelh1(nu + 1, x)) / 2 ))
-    ( :hankelh2,   :(   * (hankelh2(nu - 1, x) - hankelh2(nu + 1, x)) / 2 ))
+    ( :besselj,    :(   *(besselj(nu - 1, x) - besselj(nu + 1, x)) / 2   ))
+    ( :besseli,    :(   *(besseli(nu - 1, x) + besseli(nu + 1, x)) / 2   ))
+    ( :bessely,    :(   *(bessely(nu - 1, x) - bessely(nu + 1, x)) / 2   ))
+    ( :besselk,    :( -1*(besselk(nu - 1, x) + besselk(nu + 1, x)) / 2   ))
+    ( :hankelh1,   :(   *(hankelh1(nu - 1, x) - hankelh1(nu + 1, x)) / 2 ))
+    ( :hankelh2,   :(   *(hankelh2(nu - 1, x) - hankelh2(nu + 1, x)) / 2 ))
 ]
 
 
