@@ -93,7 +93,7 @@ function simplify(ex::Expr)
     if ex.head != :call
         return ex
     end
-    if all(map(isnumber, ex.args[2:end])) && length(ex.args) > 1
+    if all(isnumber, ex.args[2:end]) && length(ex.args) > 1
         return eval(ex)
     end
     new_ex = simplify(SymbolParameter(ex.args[1]), ex.args[2:end])
