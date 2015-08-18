@@ -38,7 +38,7 @@ end
 macro complexrule(x, e)
     x, e = esc(x), esc(e)
     quote
-        $e = eps($x)
+        $e = eps($x + 1e-200)
     end
 end
 
