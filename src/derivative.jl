@@ -8,10 +8,10 @@ function derivative(f::Function, ftype::Symbol, dtype::Symbol)
   end
   return g
 end
-derivative{T <: Number}(f::Function, x::Union(T, Vector{T}), dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
+Compat.@compat derivative{T <: Number}(f::Function, x::Union{T, Vector{T}}, dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
 derivative(f::Function, dtype::Symbol = :central) = derivative(f, :scalar, dtype)
 
-gradient{T <: Number}(f::Function, x::Union(T, Vector{T}), dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
+Compat.@compat gradient{T <: Number}(f::Function, x::Union{T, Vector{T}}, dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
 gradient(f::Function, dtype::Symbol = :central) = derivative(f, :vector, dtype)
 
 ctranspose(f::Function) = derivative(f)
@@ -35,16 +35,16 @@ function second_derivative(f::Function, g::Function, ftype::Symbol, dtype::Symbo
   end
   return h
 end
-function second_derivative{T <: Number}(f::Function, g::Function, x::Union(T, Vector{T}), dtype::Symbol)
+Compat.@compat function second_derivative{T <: Number}(f::Function, g::Function, x::Union{T, Vector{T}}, dtype::Symbol)
   finite_difference_hessian(f, g, x, dtype)
 end
-function hessian{T <: Number}(f::Function, g::Function, x::Union(T, Vector{T}), dtype::Symbol)
+Compat.@compat function hessian{T <: Number}(f::Function, g::Function, x::Union{T, Vector{T}}, dtype::Symbol)
   finite_difference_hessian(f, g, x, dtype)
 end
-function second_derivative{T <: Number}(f::Function, g::Function, x::Union(T, Vector{T}))
+Compat.@compat function second_derivative{T <: Number}(f::Function, g::Function, x::Union{T, Vector{T}})
   finite_difference_hessian(f, g, x, :central)
 end
-function hessian{T <: Number}(f::Function, g::Function, x::Union(T, Vector{T}))
+Compat.@compat function hessian{T <: Number}(f::Function, g::Function, x::Union{T, Vector{T}})
   finite_difference_hessian(f, g, x, :central)
 end
 function second_derivative(f::Function, x::Number, dtype::Symbol)

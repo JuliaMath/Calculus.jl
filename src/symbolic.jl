@@ -1,6 +1,5 @@
-
 export Symbolic, AbstractVariable, SymbolicVariable, BasicVariable, processExpr, @sexpr
-export SymbolParameter, simplify 
+export SymbolParameter, simplify
 import Base.show, Base.(==)
 
 #################################################################
@@ -15,7 +14,7 @@ import Base.show, Base.(==)
 
 abstract Symbolic
 abstract AbstractVariable <: Symbolic
-typealias SymbolicVariable Union(Symbol, AbstractVariable)
+Compat.@compat typealias SymbolicVariable Union{Symbol, AbstractVariable}
 
 
 #################################################################

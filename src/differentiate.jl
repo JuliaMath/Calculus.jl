@@ -270,6 +270,6 @@ function differentiate(ex::Expr, targets::Vector{Symbol})
 end
 
 differentiate(ex::Expr) = differentiate(ex, :x)
-differentiate(s::String, target...) = differentiate(parse(s), target...)
-differentiate(s::String, target::String) = differentiate(parse(s), symbol(target))
-differentiate{T <: String}(s::String, targets::Vector{T}) = differentiate(parse(s), map(symbol, targets))
+differentiate(s::Compat.AbstractString, target...) = differentiate(parse(s), target...)
+differentiate(s::Compat.AbstractString, target::Compat.AbstractString) = differentiate(parse(s), symbol(target))
+differentiate{T <: Compat.AbstractString}(s::Compat.AbstractString, targets::Vector{T}) = differentiate(parse(s), map(symbol, targets))
