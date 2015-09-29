@@ -63,7 +63,7 @@ end
 # SymbolParameter
 #   used to be able to dispatch on the symbol representing a
 #   function
-#   
+#
 #################################################################
 
 type SymbolParameter{T}
@@ -75,7 +75,7 @@ SymbolParameter(s::Symbol) = SymbolParameter{s}()
 #################################################################
 #
 # simplify()
-#   
+#
 #################################################################
 
 isnumber(a) = isa(a, Number)
@@ -93,7 +93,7 @@ function simplify(ex::Expr)
         return ex
     end
     if all(isnumber, ex.args[2:end]) && length(ex.args) > 1
-        return eval(ex)
+        return eval(current_module(), ex)
     end
     new_ex = simplify(SymbolParameter(ex.args[1]), ex.args[2:end])
     while new_ex != ex
