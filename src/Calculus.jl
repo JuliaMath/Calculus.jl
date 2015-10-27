@@ -12,7 +12,6 @@ module Calculus
            differentiate,
            gradient,
            hessian,
-           integrate,
            jacobian,
            second_derivative
 
@@ -60,7 +59,8 @@ module Calculus
     include("finite_difference.jl")
     include("derivative.jl")
     include("check_derivative.jl")
-    include("integrate.jl")
+    @Base.deprecate integrate(f,a,b) quadgk(f,a,b)[1]
+    @Base.deprecate integrate(f,a,b,method) quadgk(f,a,b)[1]
     include("symbolic.jl")
     include("differentiate.jl")
     include("deparse.jl")
