@@ -20,7 +20,6 @@ Most users will want to work with a limited set of basic functions:
 * `second_derivative()`: Use this for functions from R to R
 * `gradient()`: Use this for functions from R^n to R
 * `hessian()`: Use this for functions from R^n to R
-* `integrate()`: Use this to integrate functions from R to R
 * `differentiate()`: Use this to perform symbolic differentiation
 * `simplify()`: Use this to perform symbolic simplification
 * `deparse()`: Use this to get usual infix representation of expressions
@@ -104,23 +103,6 @@ derivative you calculate:
 	f''(1.0) - (-sin(1.0))
 	f'''(1.0) - (-cos(1.0))
 
-## Integration using Simpson's Rule
-
-	using Calculus
-
-	# Compare with log(2)
-	integrate(x -> 1 / x, 1.0, 2.0)
-
-	# Compare with cos(pi) - cos(0)
-	integrate(x -> -sin(x), 0.0, float64(pi))
-
-## Integration using Monte Carlo method
-
-	using Calculus
-
-	# Compare with cos(pi) - cos(0)
-	integrate(x -> -sin(x), 0.0, float64(pi), :monte_carlo)
-
 ## Symbolic Differentiation
 
 	using Calculus
@@ -128,9 +110,10 @@ derivative you calculate:
 	differentiate("cos(x) + sin(x) + exp(-x) * cos(x)", :x)
 	differentiate("cos(x) + sin(y) + exp(-x) * cos(y)", [:x, :y])
 
-# Coming Soon
+## Numerical Integration
 
-* Finite differencing based on complex numbers
+The Calculus package no longer provides routines for univariate numerical integration.
+Use the ``quadgk`` method from base Julia instead.
 
 # Credits
 
@@ -142,6 +125,7 @@ Calculus.jl is built on contributions from:
 * Nathaniel Daw
 * Blake Johnson
 * Avik Sengupta
+* Miles Lubin
 
 And draws inspiration and ideas from:
 

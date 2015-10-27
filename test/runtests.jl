@@ -8,7 +8,6 @@ using Base.Test
 tests = ["finite_difference",
          "derivative",
          "check_derivative",
-         "integrate",
          "symbolic",
          "deparse"]
 
