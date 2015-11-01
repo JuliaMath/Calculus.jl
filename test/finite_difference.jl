@@ -47,7 +47,7 @@
 #
 
 fx(x) = sin(x[1]) + cos(x[2])
-gx = gradient(fx)
+gx = Calculus.gradient(fx)
 @test norm(gx([0.0, 0.0]) - [cos(0.0), -sin(0.0)]) < 10e-4
 @test norm(Calculus.finite_difference_hessian(fx, gx, [0.0, 0.0], :central) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4
 @test norm(Calculus.finite_difference_hessian(fx, [0.0, 0.0]) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4

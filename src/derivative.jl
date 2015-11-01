@@ -14,6 +14,16 @@ derivative(f::Function, dtype::Symbol = :central) = derivative(f, :scalar, dtype
 Compat.@compat gradient{T <: Number}(f::Function, x::Union{T, Vector{T}}, dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
 gradient(f::Function, dtype::Symbol = :central) = derivative(f, :vector, dtype)
 
+Compat.@compat function Base.gradient{T <: Number}(f::Function, x::Union{T, Vector{T}}, dtype::Symbol = :central)
+    Base.warn_once("The finite difference methods from Calculus.jl no longer extend Base.gradient and should be called as Calculus.gradient instead. This usage is deprecated.")
+    Calculus.gradient(f,x,dtype)
+end
+
+function Base.gradient(f::Function, dtype::Symbol = :central)
+    Base.warn_once("The finite difference methods from Calculus.jl no longer extend Base.gradient and should be called as Calculus.gradient instead. This usage is deprecated.")
+    Calculus.gradient(f,dtype)
+end
+
 ctranspose(f::Function) = derivative(f)
 
 function jacobian{T <: Number}(f::Function, x::Vector{T}, dtype::Symbol)
