@@ -10,12 +10,9 @@ module Calculus
            deparse,
            derivative,
            differentiate,
-           gradient,
            hessian,
            jacobian,
            second_derivative
-
-    import Base: gradient
 
     # TODO: Debate type system more carefully
     # abstract BundledFunction

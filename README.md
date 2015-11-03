@@ -18,7 +18,7 @@ Most users will want to work with a limited set of basic functions:
 
 * `derivative()`: Use this for functions from R to R
 * `second_derivative()`: Use this for functions from R to R
-* `gradient()`: Use this for functions from R^n to R
+* `Calculus.gradient()`: Use this for functions from R^n to R
 * `hessian()`: Use this for functions from R^n to R
 * `differentiate()`: Use this to perform symbolic differentiation
 * `simplify()`: Use this to perform symbolic simplification
@@ -42,14 +42,14 @@ There are a few basic approaches to using the Calculus package:
 	# Compare with cos(1.0)
 	derivative(sin, 1.0)
 	# Compare with cos(pi)
-	derivative(sin, float64(pi))
+	derivative(sin, float(pi))
 
 	# Compare with [cos(0.0), -sin(0.0)]
-	gradient(x -> sin(x[1]) + cos(x[2]), [0.0, 0.0])
+	Calculus.gradient(x -> sin(x[1]) + cos(x[2]), [0.0, 0.0])
 	# Compare with [cos(1.0), -sin(1.0)]
-	gradient(x -> sin(x[1]) + cos(x[2]), [1.0, 1.0])
+	Calculus.gradient(x -> sin(x[1]) + cos(x[2]), [1.0, 1.0])
 	# Compare with [cos(pi), -sin(pi)]
-	gradient(x -> sin(x[1]) + cos(x[2]), [float64(pi), float64(pi)])
+	Calculus.gradient(x -> sin(x[1]) + cos(x[2]), [float64(pi), float64(pi)])
 
 	# Compare with -sin(0.0)
 	second_derivative(sin, 0.0)
@@ -74,7 +74,7 @@ There are a few basic approaches to using the Calculus package:
 	g1(1.0)
 	g1(pi)
 
-	g2 = gradient(x -> sin(x[1]) + cos(x[2]))
+	g2 = Calculus.gradient(x -> sin(x[1]) + cos(x[2]))
 	g2([0.0, 0.0])
 	g2([1.0, 1.0])
 	g2([pi, pi])

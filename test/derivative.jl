@@ -27,9 +27,9 @@ end
 #
 
 f4(x::Vector) = (100.0 - x[1])^2 + (50.0 - x[2])^2
-@test norm(gradient(f4, :forward)([100.0, 50.0]) - [0.0, 0.0]) < 10e-4
-@test norm(gradient(f4, :central)([100.0, 50.0]) - [0.0, 0.0]) < 10e-4
-@test norm(gradient(f4)([100.0, 50.0]) - [0.0, 0.0]) < 10e-4
+@test norm(Calculus.gradient(f4, :forward)([100.0, 50.0]) - [0.0, 0.0]) < 10e-4
+@test norm(Calculus.gradient(f4, :central)([100.0, 50.0]) - [0.0, 0.0]) < 10e-4
+@test norm(Calculus.gradient(f4)([100.0, 50.0]) - [0.0, 0.0]) < 10e-4
 
 #
 # second_derivative()
@@ -45,5 +45,5 @@ f4(x::Vector) = (100.0 - x[1])^2 + (50.0 - x[2])^2
 #
 
 f5(x) = sin(x[1]) + cos(x[2])
-@test norm(gradient(f5)([0.0, 0.0]) - [cos(0.0), -sin(0.0)]) < 10e-4
+@test norm(Calculus.gradient(f5)([0.0, 0.0]) - [cos(0.0), -sin(0.0)]) < 10e-4
 @test norm(hessian(f5)([0.0, 0.0]) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4
