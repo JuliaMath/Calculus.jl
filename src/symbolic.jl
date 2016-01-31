@@ -149,7 +149,7 @@ isminus(ex) = false
 
 # Assume length(args) == 3
 function simplify(::SymbolParameter{:-}, args)
-    # Remove redundant subtractions: (x-0)
+    # Remove redundant subtractions: (x-0) == x
     if length(args) == 2 && args[2]==0
         return args[1]
     end
