@@ -21,3 +21,9 @@
 @test check_hessian(x -> sin(x[1]) + cos(x[2]), x -> [-sin(x[1]) 0.0; 0.0 -cos(x[2])], [10.0, 10.0]) < 10e-4
 @test check_hessian(x -> sin(x[1]) + cos(x[2]), x -> [-sin(x[1]) 0.0; 0.0 -cos(x[2])], [100.0, 100.0]) < 10e-4
 @test check_hessian(x -> sin(x[1]) + cos(x[2]), x -> [-sin(x[1]) 0.0; 0.0 -cos(x[2])], [1000.0, 1000.0]) < 10e-4
+
+# Test functionality for other AbstractArray types
+@test check_gradient(x -> sin(x[1]) + cos(x[2]), x -> [cos(x[1]), -sin(x[2])],
+    sub([0.0, 0.0],:)) < 10e-4
+@test check_hessian(x -> sin(x[1]) + cos(x[2]), x -> [-sin(x[1]) 0.0; 0.0 -cos(x[2])],
+    sub([0.0, 0.0],:)) < 10e-4

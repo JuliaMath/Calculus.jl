@@ -98,8 +98,8 @@ end
 ##############################################################################
 
 function finite_difference!{S <: Number, T <: Number}(f::Function,
-                                                      x::Vector{S},
-                                                      g::Vector{T},
+                                                      x::AbstractVector{S},
+                                                      g::AbstractVector{T},
                                                       dtype::Symbol)
     # What is the dimension of x?
     n = length(x)
@@ -136,7 +136,7 @@ function finite_difference!{S <: Number, T <: Number}(f::Function,
     return
 end
 function finite_difference{T <: Number}(f::Function,
-                                        x::Vector{T},
+                                        x::AbstractVector{T},
                                         dtype::Symbol = :central)
     # Allocate memory for gradient
     g = Array(Float64, length(x))
@@ -157,9 +157,9 @@ end
 function finite_difference_jacobian!{R <: Number,
                                      S <: Number,
                                      T <: Number}(f::Function,
-                                                  x::Vector{R},
-                                                  f_x::Vector{S},
-                                                  J::Array{T},
+                                                  x::AbstractVector{R},
+                                                  f_x::AbstractVector{S},
+                                                  J::AbstractArray{T},
                                                   dtype::Symbol = :central)
     # What is the dimension of x?
     m, n = size(J)
@@ -192,7 +192,7 @@ function finite_difference_jacobian!{R <: Number,
     return
 end
 function finite_difference_jacobian{T <: Number}(f::Function,
-                                                 x::Vector{T},
+                                                 x::AbstractVector{T},
                                                  dtype::Symbol = :central)
     # Establish a baseline for f_x
     f_x = f(x)
@@ -233,8 +233,8 @@ end
 
 function finite_difference_hessian!{S <: Number,
                                     T <: Number}(f::Function,
-                                                 x::Vector{S},
-                                                 H::Array{T})
+                                                 x::AbstractVector{S},
+                                                 H::AbstractArray{T})
     # What is the dimension of x?
     n = length(x)
 
@@ -265,7 +265,7 @@ function finite_difference_hessian!{S <: Number,
     Base.LinAlg.copytri!(H,'U')
 end
 function finite_difference_hessian{T <: Number}(f::Function,
-                                                x::Vector{T})
+                                                x::AbstractVector{T})
     # What is the dimension of x?
     n = length(x)
 
@@ -280,7 +280,7 @@ function finite_difference_hessian{T <: Number}(f::Function,
 end
 function finite_difference_hessian{T <: Number}(f::Function,
                                                 g::Function,
-                                                x::Vector{T},
+                                                x::AbstractVector{T},
                                                 dtype::Symbol = :central)
     finite_difference_jacobian(g, x, dtype)
 end

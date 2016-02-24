@@ -30,6 +30,11 @@
 @test norm(Calculus.finite_difference(x -> exp(-x[1]), [1.0], :central) - [-exp(-1.0)]) < 10e-4
 @test norm(Calculus.finite_difference(x -> exp(-x[1]), [1.0]) - [-exp(-1.0)]) < 10e-4
 
+# Gradients of f when x is a SubArrays
+@test norm(Calculus.finite_difference(x -> exp(-x[1]), sub([1.0],:), :forward) - [-exp(-1.0)]) < 10e-4
+@test norm(Calculus.finite_difference(x -> exp(-x[1]), sub([1.0],:), :central) - [-exp(-1.0)]) < 10e-4
+@test norm(Calculus.finite_difference(x -> exp(-x[1]), sub([1.0],:)) - [-exp(-1.0)]) < 10e-4
+
 #
 # Second derivatives of f: R -> R
 #
@@ -51,6 +56,10 @@ gx = Calculus.gradient(fx)
 @test norm(gx([0.0, 0.0]) - [cos(0.0), -sin(0.0)]) < 10e-4
 @test norm(Calculus.finite_difference_hessian(fx, gx, [0.0, 0.0], :central) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4
 @test norm(Calculus.finite_difference_hessian(fx, [0.0, 0.0]) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4
+
+@test norm(gx(sub([0.0, 0.0],:)) - [cos(0.0), -sin(0.0)]) < 10e-4
+@test norm(Calculus.finite_difference_hessian(fx, gx, sub([0.0, 0.0],:), :central) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4
+@test norm(Calculus.finite_difference_hessian(fx, sub([0.0, 0.0],:)) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4
 
 #
 # Taylor Series first derivatives
