@@ -30,7 +30,6 @@ There are a few basic approaches to using the Calculus package:
 
 * Use finite-differencing to evaluate the derivative at a specific point
 * Use higher-order functions to create new functions that evaluate derivatives
-* Use integration by Simpson's rule or Monte Carlo method to evaluate definite integrals
 * Use symbolic differentiation to produce exact derivatives for simple functions
 
 ## Direct Finite Differencing
