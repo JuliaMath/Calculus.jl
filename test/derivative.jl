@@ -9,9 +9,13 @@ f1(x::Real) = sin(x)
 @test norm(derivative(f1, :central)(0.0) - cos(0.0)) < 10e-4
 @test norm(derivative(f1)(0.0) - cos(0.0)) < 10e-4
 
-f2(x::Vector) = sin(x[1])
+f2(x::AbstractVector) = sin(x[1])
 @test norm(derivative(f2, :vector, :forward)([0.0]) .- cos(0.0)) < 10e-4
 @test norm(derivative(f2, :vector, :central)([0.0]) .- cos(0.0)) < 10e-4
+
+# Test functionality for SubArrays
+@test norm(derivative(f2, :vector, :forward)(sub([0.0],:)) .- cos(0.0)) < 10e-4
+@test norm(derivative(f2, :vector, :central)(sub([0.0],:)) .- cos(0.0)) < 10e-4
 
 #
 # ctranspose overloading
@@ -26,10 +30,15 @@ end
 # gradient()
 #
 
-f4(x::Vector) = (100.0 - x[1])^2 + (50.0 - x[2])^2
+f4(x::AbstractVector) = (100.0 - x[1])^2 + (50.0 - x[2])^2
 @test norm(Calculus.gradient(f4, :forward)([100.0, 50.0]) - [0.0, 0.0]) < 10e-4
 @test norm(Calculus.gradient(f4, :central)([100.0, 50.0]) - [0.0, 0.0]) < 10e-4
 @test norm(Calculus.gradient(f4)([100.0, 50.0]) - [0.0, 0.0]) < 10e-4
+
+# Test for SubArrays
+@test norm(Calculus.gradient(f4, :forward)(sub([100.0, 50.0],:)) - [0.0, 0.0]) < 10e-4
+@test norm(Calculus.gradient(f4, :central)(sub([100.0, 50.0],:)) - [0.0, 0.0]) < 10e-4
+@test norm(Calculus.gradient(f4)(sub([100.0, 50.0],:)) - [0.0, 0.0]) < 10e-4
 
 #
 # second_derivative()
@@ -47,3 +56,7 @@ f4(x::Vector) = (100.0 - x[1])^2 + (50.0 - x[2])^2
 f5(x) = sin(x[1]) + cos(x[2])
 @test norm(Calculus.gradient(f5)([0.0, 0.0]) - [cos(0.0), -sin(0.0)]) < 10e-4
 @test norm(hessian(f5)([0.0, 0.0]) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4
+
+# And for SubArrays again
+@test norm(Calculus.gradient(f5)(sub([0.0, 0.0],:)) - [cos(0.0), -sin(0.0)]) < 10e-4
+@test norm(hessian(f5)(sub([0.0, 0.0],:)) - [-sin(0.0) 0.0; 0.0 -cos(0.0)]) < 10e-4
