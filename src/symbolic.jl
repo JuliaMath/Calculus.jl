@@ -89,6 +89,12 @@ simplify(s::SymbolicVariable) = s
 simplify{T}(x::SymbolParameter{T}, args) = Expr(:call, T, map(simplify, args)...)
 
 function simplify(ex::Expr)
+    if in(ex.head,[:vcat,:row])
+		for i = 1:length(ex.args)
+			ex.args[i]=simplify(ex.args[i])
+		end
+		return ex
+	end
     if ex.head != :call
         return ex
     end
