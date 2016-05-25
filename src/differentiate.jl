@@ -12,8 +12,8 @@ differentiate(ex::SymbolicVariable, wrt::SymbolicVariable) = (ex == wrt) ? 1 : 0
 
 differentiate(ex::Number, wrt::SymbolicVariable) = 0
 
-function differentiate(ex::Expr,wrt::Expr)
-	if ex.head==:vect #|| ex.head ==:vcat
+function differentiate(ex::Expr,wrt)
+	if ex.head==:vect
 		return differentiate(SymbolParameter(:vect), ex.args[1:end], wrt)
 	elseif ex.head == :ref
         return ex==wrt ? 1 : 0
