@@ -71,13 +71,13 @@ function second_derivative(f::Function, x::Number)
   finite_difference_hessian(f, derivative(f), x, :central)
 end
 function hessian(f::Function, x::Number)
-  finite_difference_hessian(f, derivative(f), x, :central)
+  finite_difference_hessian(f, x)
 end
 function second_derivative{T <: Number}(f::Function, x::Vector{T})
   finite_difference_hessian(f, gradient(f), x, :central)
 end
 function hessian{T <: Number}(f::Function, x::Vector{T})
-  finite_difference_hessian(f, gradient(f), x, :central)
+  finite_difference_hessian(f, x)
 end
 second_derivative(f::Function, g::Function, dtype::Symbol) = second_derivative(f, g, :scalar, dtype)
 second_derivative(f::Function, g::Function) = second_derivative(f, g, :scalar, :central)
