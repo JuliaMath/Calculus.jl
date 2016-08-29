@@ -171,7 +171,7 @@ symbolic_derivative_1arg_list = [
     ( :gamma,       :(  digamma(x) * gamma(x)                   ))
     ( :lgamma,      :(  digamma(x)                              ))
     ( :digamma,     :(  trigamma(x)                             ))
-    ( :invdigamma,  :(  inv(trigamma(x))                        ))
+    ( :invdigamma,  :(  inv(trigamma(invdigamma(x)))            ))
     ( :trigamma,    :(  polygamma(2, x)                         ))
     ( :airy,        :(  airyprime(x)                            ))  # note: only covers the 1-arg version
     ( :airyprime,   :(  x * airy(x)                             ))
