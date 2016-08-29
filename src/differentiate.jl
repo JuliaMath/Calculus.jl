@@ -124,7 +124,6 @@ symbolic_derivative_1arg_list = [
     ( :exp,         :(  exp(x)                                  ))
     ( :exp2,        :(  log(2) * exp2(x)                        ))
     ( :expm1,       :(  exp(x)                                  ))
-    ( :frexp,       :(  inv(exp2(frexp(x)[2]))                  ))
     ( :sin,         :(  cos(x)                                  ))
     ( :cos,         :( -sin(x)                                  ))
     ( :tan,         :(  (1 + tan(x)^2)                          ))
