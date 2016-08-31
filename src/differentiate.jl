@@ -182,8 +182,8 @@ symbolic_derivative_1arg_list = [
     ( :besselj1,    :(  (besselj0(x) - besselj(2, x)) / 2       ))
     ( :bessely0,    :( -bessely1(x)                             ))
     ( :bessely1,    :(  (bessely0(x) - bessely(2, x)) / 2       ))
-    ## ( :erfcx,   :(  (2 * x * erfcx(x) - 2 / sqrt(pi))   ))  # uncertain
-    ## ( :dawson,  :(  (1 - 2x * dawson(x))                ))  # uncertain
+    ( :erfcx,       :(  (2 * x * erfcx(x) - 2 / sqrt(pi))       ))
+    ( :dawson,      :(  (1 - 2x * dawson(x))                    ))
 
 ]
 
