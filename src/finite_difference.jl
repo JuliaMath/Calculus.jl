@@ -139,7 +139,7 @@ function finite_difference{T <: Number}(f::Function,
                                         x::Vector{T},
                                         dtype::Symbol = :central)
     # Allocate memory for gradient
-    g = Array(Float64, length(x))
+    g = Vector{Float64}(length(x))
 
     # Mutate allocated gradient
     finite_difference!(f, float(x), g, dtype)
@@ -270,7 +270,7 @@ function finite_difference_hessian{T <: Number}(f::Function,
     n = length(x)
 
     # Allocate an empty Hessian
-    H = Array(Float64, n, n)
+    H = Matrix{Float64}(n, n)
 
     # Mutate the allocated Hessian
     finite_difference_hessian!(f, x, H)

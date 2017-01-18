@@ -79,9 +79,9 @@ end
 # d/dx (f * g * h) = (d/dx f) * g * h + f * (d/dx g) * h + ...
 function differentiate(::SymbolParameter{:*}, args, wrt)
     n = length(args)
-    res_args = Array(Any, n)
+    res_args = Vector{Any}(n)
     for i in 1:n
-       new_args = Array(Any, n)
+       new_args = Vector{Any}(n)
        for j in 1:n
            if j == i
                new_args[j] = differentiate(args[j], wrt)
@@ -200,7 +200,7 @@ export symbolic_derivatives_1arg
 
 # deprecated: for backward compatibility with packages that used
 # this unexported interface.
-derivative_rules = Array(@Compat.compat(Tuple{Symbol,Expr}),0)
+derivative_rules = Vector{Compat.@compat(Tuple{Symbol,Expr})}(0)
 for (s,ex) in symbolic_derivative_1arg_list
     push!(derivative_rules, (s, :(xp*$ex)))
 end
@@ -267,7 +267,7 @@ end
 
 function differentiate(ex::Expr, targets::Vector{Symbol})
     n = length(targets)
-    exprs = Array(Any, n)
+    exprs = Vector{Any}(n)
     for i in 1:n
         exprs[i] = differentiate(ex, targets[i])
     end
