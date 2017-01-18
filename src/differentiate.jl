@@ -172,8 +172,6 @@ symbolic_derivative_1arg_list = [
     ( :digamma,     :(  trigamma(x)                             ))
     ( :invdigamma,  :(  inv(trigamma(invdigamma(x)))            ))
     ( :trigamma,    :(  polygamma(2, x)                         ))
-    ( :airy,        :(  airyprime(x)                            ))  # note: only covers the 1-arg version
-    ( :airyprime,   :(  x * airy(x)                             ))
     ( :airyai,      :(  airyaiprime(x)                          ))
     ( :airybi,      :(  airybiprime(x)                          ))
     ( :airyaiprime, :(  x * airyai(x)                           ))
@@ -184,8 +182,13 @@ symbolic_derivative_1arg_list = [
     ( :bessely1,    :(  (bessely0(x) - bessely(2, x)) / 2       ))
     ( :erfcx,       :(  (2 * x * erfcx(x) - 2 / sqrt(pi))       ))
     ( :dawson,      :(  (1 - 2x * dawson(x))                    ))
-
 ]
+
+# `airy` and `airyprime` are deprecated in v0.6 (see JuliaLang/julia#18050)
+if VERSION < v"0.6.0-dev.1767"
+    push!(symbolic_derivative_1arg_list, (:airy, :(airyprime(x))))
+    push!(symbolic_derivative_1arg_list, (:airyprime, :(x * airy(x))))
+end
 
 
 # This is the public interface for accessing the list of symbolic
