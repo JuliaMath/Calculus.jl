@@ -1,3 +1,13 @@
+"""
+    derivative(f::Function, ftype::Symbol, dtype::Symbol)
+
+### Arg:
+* An object of type `Function`
+* Input data of type `:scalar` or `:vector`
+* Type of finite differencing, must be :forward, :central or :complex
+
+Computes the derivative of the `Function` `f` for the data of type `ftype`. The finite difference method used by default is `:central`. 
+"""
 function derivative(f::Function, ftype::Symbol, dtype::Symbol)
   if ftype == :scalar
     return x::Number -> finite_difference(f, float(x), dtype)
@@ -11,20 +21,31 @@ Compat.@compat derivative{T <: Number}(f::Function, x::Union{T, Vector{T}}, dtyp
 derivative(f::Function, dtype::Symbol = :central) = derivative(f, :scalar, dtype)
 
 Compat.@compat gradient{T <: Number}(f::Function, x::Union{T, Vector{T}}, dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
+"""
+```
+gradient(f::Function, dtype::Symbol = :central)
+```
+
+### Args:
+* The function for which gradient is required.
+* Optional second parameter is the method for finite difference, default is `:central`.
+"""
 gradient(f::Function, dtype::Symbol = :central) = derivative(f, :vector, dtype)
-
-Compat.@compat function Base.gradient{T <: Number}(f::Function, x::Union{T, Vector{T}}, dtype::Symbol = :central)
-    Base.warn_once("The finite difference methods from Calculus.jl no longer extend Base.gradient and should be called as Calculus.gradient instead. This usage is deprecated.")
-    Calculus.gradient(f,x,dtype)
-end
-
-function Base.gradient(f::Function, dtype::Symbol = :central)
-    Base.warn_once("The finite difference methods from Calculus.jl no longer extend Base.gradient and should be called as Calculus.gradient instead. This usage is deprecated.")
-    Calculus.gradient(f,dtype)
-end
 
 ctranspose(f::Function) = derivative(f)
 
+"""
+```
+jacobian{T <: Number}(f::Function, x::Vector{T}, dtype::Symbol)
+```
+
+### Args:
+* Function `f` to compute the `jacobian` upon.
+* Vector `x` with respect to which the jacobian of the function `f` is computed.
+* The method of finite difference, `:central`, `:forward` or `:complex`.
+
+`jacobian` computes the Jacobian matrix of function `f` with respect to vector `x`.
+"""
 function jacobian{T <: Number}(f::Function, x::Vector{T}, dtype::Symbol)
     finite_difference_jacobian(f, x, dtype)
 end
@@ -34,6 +55,17 @@ function jacobian(f::Function, dtype::Symbol)
 end
 jacobian(f::Function) = jacobian(f, :central)
 
+"""
+```
+second_derivative(f, x, dtype)
+```
+
+### Args:
+* The function to find the second derivative.
+* The data point with respect to which secon derivative is computed. This can either be a scalar or a vector.
+* The method of finite difference, `:central`, `:forward` or `:complex`.
+"""
+second_derivative
 function second_derivative(f::Function, g::Function, ftype::Symbol, dtype::Symbol)
   if ftype == :scalar
     return x::Number -> finite_difference_hessian(f, g, x, dtype)
@@ -46,6 +78,20 @@ end
 Compat.@compat function second_derivative{T <: Number}(f::Function, g::Function, x::Union{T, Vector{T}}, dtype::Symbol)
   finite_difference_hessian(f, g, x, dtype)
 end
+
+"""
+```
+hessian(f, x, dtype)
+```
+
+### Args:
+* Function to find the Hessian.
+* `x` can either be type of `Number` or `Vector`.
+* The method of finite difference, `:central`, `:forward` or `:complex`.
+
+Computes the Hessian for the function `f` with respect to `x`.
+"""
+hessian
 Compat.@compat function hessian{T <: Number}(f::Function, g::Function, x::Union{T, Vector{T}}, dtype::Symbol)
   finite_difference_hessian(f, g, x, dtype)
 end

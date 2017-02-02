@@ -8,6 +8,17 @@ export differentiate
 #
 #################################################################
 
+"""
+    differentiate(ex::Number, wrt)
+
+### Args:
+* Expression of type `:Number` to differentiate
+* Variable with respect to which to differentiate
+
+Differentiate `ex` with respect to variable `wrt`.
+"""
+function differentiate end
+
 differentiate(ex::SymbolicVariable, wrt::SymbolicVariable) = (ex == wrt) ? 1 : 0
 
 differentiate(ex::Number, wrt::SymbolicVariable) = 0
@@ -197,6 +208,7 @@ end
 # expression for the first derivative of the function f.
 # The symbol :x is used within deriv_expr for the point at
 # which the derivative should be evaluated.
+"""This is the public interface for accessing the list of symbolic derivatives."""
 symbolic_derivatives_1arg() = symbolic_derivative_1arg_list
 export symbolic_derivatives_1arg
 
