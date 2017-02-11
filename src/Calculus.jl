@@ -15,14 +15,14 @@ module Calculus
            second_derivative
 
     # TODO: Debate type system more carefully
-    # abstract BundledFunction
-    # abstract ScalarFunction
-    # abstract VectorFunction
-    # abstract ForwardDifference
-    # abstract CentralDifference
-    # abstract ComplexDifference
-    # abstract GradientEstimator
-    # abstract HessianEstimator
+    # abstract type BundledFunction end
+    # abstract type ScalarFunction end
+    # abstract type VectorFunction end
+    # abstract type ForwardDifference end
+    # abstract type CentralDifference end
+    # abstract type ComplexDifference end
+    # abstract type GradientEstimator end
+    # abstract type HessianEstimator end
 
     # typealias NonDifferentiableFunction Function
     # type DifferentiableFunction
