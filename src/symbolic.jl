@@ -12,8 +12,8 @@ import Base.show, Base.(==)
 #
 #################################################################
 
-abstract Symbolic
-abstract AbstractVariable <: Symbolic
+Compat.@compat abstract type Symbolic end
+Compat.@compat abstract type AbstractVariable <: Symbolic end
 Compat.@compat typealias SymbolicVariable Union{Symbol, AbstractVariable}
 
 
