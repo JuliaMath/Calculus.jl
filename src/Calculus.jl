@@ -24,7 +24,7 @@ module Calculus
     # abstract type GradientEstimator end
     # abstract type HessianEstimator end
 
-    # typealias NonDifferentiableFunction Function
+    # const NonDifferentiableFunction = Function
     # type DifferentiableFunction
     #   f::Function
     #   g::Function
