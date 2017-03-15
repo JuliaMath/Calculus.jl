@@ -32,6 +32,13 @@ f4(x::Vector) = (100.0 - x[1])^2 + (50.0 - x[2])^2
 @test norm(Calculus.gradient(f4)([100.0, 50.0]) - [0.0, 0.0]) < 10e-4
 
 #
+# jacobian()
+#
+
+@test norm(Calculus.jacobian(identity, rand(3), :forward) - eye(3)) < 10e-4
+@test norm(Calculus.jacobian(identity, rand(3), :central) - eye(3)) < 10e-4
+
+#
 # second_derivative()
 #
 

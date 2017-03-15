@@ -166,24 +166,23 @@ function finite_difference_jacobian!{R <: Number,
 
     # Iterate over each dimension of the gradient separately.
     if dtype == :forward
+        shifted_x = copy(x)
         for i = 1:n
             @forwardrule x[i] epsilon
-            oldx = x[i]
-            x[i] = oldx + epsilon
-            f_xplusdx = f(x)
-            x[i] = oldx
-            J[:, i] = (f_xplusdx - f_x) / epsilon
+            shifted_x[i] += epsilon
+            J[:, i] = (f(shifted_x) - f_x) / epsilon
+            shifted_x[i] = x[i]
         end
     elseif dtype == :central
+        shifted_x_plus = copy(x)
+        shifted_x_minus = copy(x)
         for i = 1:n
             @centralrule x[i] epsilon
-            oldx = x[i]
-            x[i] = oldx + epsilon
-            f_xplusdx = f(x)
-            x[i] = oldx - epsilon
-            f_xminusdx = f(x)
-            x[i] = oldx
-            J[:, i] = (f_xplusdx - f_xminusdx) / (epsilon + epsilon)
+            shifted_x_plus[i] += epsilon
+            shifted_x_minus[i] -= epsilon
+            J[:, i] = (f(shifted_x_plus) - f(shifted_x_minus)) / (epsilon + epsilon)
+            shifted_x_plus[i] = x[i]
+            shifted_x_minus[i] = x[i]
         end
     else
         error("dtype must :forward or :central")
