@@ -89,6 +89,12 @@ simplify(s::SymbolicVariable) = s
 simplify{T}(x::SymbolParameter{T}, args) = Expr(:call, T, map(simplify, args)...)
 
 function simplify(ex::Expr)
+    if in(ex.head,[:vcat,:row])
+		for i = 1:length(ex.args)
+			ex.args[i]=simplify(ex.args[i])
+		end
+		return ex
+	end
     if ex.head != :call
         return ex
     end
@@ -149,6 +155,10 @@ isminus(ex) = false
 
 # Assume length(args) == 3
 function simplify(::SymbolParameter{:-}, args)
+    # Remove redundant subtractions: (x-0) == x
+    if length(args) == 2 && args[2]==0
+        return args[1]
+    end
     # Remove any 0's in a subtraction
     args = map(simplify, filter(x -> x != 0, args))
     if length(args) == 0

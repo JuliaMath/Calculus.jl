@@ -13,11 +13,19 @@ differentiate(ex::SymbolicVariable, wrt::SymbolicVariable) = (ex == wrt) ? 1 : 0
 differentiate(ex::Number, wrt::SymbolicVariable) = 0
 
 function differentiate(ex::Expr,wrt)
-    if ex.head != :call
-        error("Unrecognized expression $ex")
-    end
-    simplify(differentiate(SymbolParameter(ex.args[1]), ex.args[2:end], wrt))
+	if ex.head==:vect
+		return differentiate(SymbolParameter(:vect), ex.args[1:end], wrt)
+	elseif ex.head == :ref
+        return ex==wrt ? 1 : 0
+    elseif ex.head != :call
+		error("Unrecognized expression $ex")
+	end
+    return simplify(differentiate(SymbolParameter(ex.args[1]), ex.args[2:end], wrt))
 end
+
+
+
+differentiate(ex::Union{Number,Symbol},wrt::Expr) = 0
 
 differentiate{T}(x::SymbolParameter{T}, args, wrt) = error("Derivative of function " * string(T) * " not supported")
 
@@ -263,10 +271,14 @@ end
 ## hypot
 ## beta, lbeta, eta, zeta, digamma
 
-## Differentiate for piecewise functions defined using ifelse
+## Differentiate for piecewise functions defined using ifelse, max and min
 function differentiate(::SymbolParameter{:ifelse}, args, wrt)
     :(ifelse($(args[1]), $(differentiate(args[2],wrt)),$(differentiate(args[3],wrt))))
 end
+
+differentiate(::SymbolParameter{:max}, args, wrt) = Expr(:if,:($(args[1])>$(args[2])),differentiate(args[1],wrt),differentiate(args[2],wrt))
+
+differentiate(::SymbolParameter{:min}, args, wrt) = Expr(:if,:($(args[1])<$(args[2])),differentiate(args[1],wrt),differentiate(args[2],wrt))
 
 function differentiate(ex::Expr, targets::Vector{Symbol})
     n = length(targets)
@@ -277,7 +289,40 @@ function differentiate(ex::Expr, targets::Vector{Symbol})
     return exprs
 end
 
+## Differentiate vector of expressions
+
+function differentiate(::SymbolParameter{:vect}, args, wrt)
+	for i = 1:length(args)
+		args[i] = differentiate(args[i],wrt)
+	end
+	return Expr(:vect,args...)
+end
+
 differentiate(ex::Expr) = differentiate(ex, :x)
 differentiate(s::Compat.AbstractString, target...) = differentiate(parse(s), target...)
 differentiate(s::Compat.AbstractString, target::Compat.AbstractString) = differentiate(parse(s), symbol(target))
 differentiate{T <: Compat.AbstractString}(s::Compat.AbstractString, targets::Vector{T}) = differentiate(parse(s), map(symbol, targets))
+
+
+## Differentiate by a vector of expressions
+
+function differentiate(ex::Expr, targets::Vector{Expr})
+	n = length(targets)
+	exprs = Array(Any, n)
+	for i in 1:n
+		exprs[i] = differentiate(ex, targets[i])
+	end
+	return exprs
+end
+
+function jacobian(ex::Expr, targets::Vector)
+    @assert ex.head==:vect || ex.head==:vcat
+    exprs = Expr(:vcat)
+    for i = 1:length(ex.args)
+        push!(exprs.args,Expr(:row))
+        for j = 1:length(targets)
+            push!(exprs.args[i].args,simplify(differentiate(ex.args[i],targets[j])))
+        end
+    end
+    return exprs
+end

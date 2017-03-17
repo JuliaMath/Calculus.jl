@@ -92,6 +92,8 @@ end
 @test isequal(simplify(:(x*3*4)), :(*(12,x)))
 @test isequal(simplify(:(2*y*x*3)), :(*(6,y,x)))
 
+@test isequal(simplify(:(x-0)), :(x))
+
 #
 # Tests with ifelse
 #
