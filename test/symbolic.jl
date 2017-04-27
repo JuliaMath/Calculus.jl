@@ -82,6 +82,9 @@ end
 # Simplify tests
 #
 
+@test isequal(simplify(:(x-0)), :x)
+@test isequal(simplify(:(0-x)), :(-x))
+
 @test isequal(simplify(:(x+y)), :(+(x,y)))
 @test isequal(simplify(:(x+3)), :(+(3,x)))
 @test isequal(simplify(:(x+3+4)), :(+(7,x)))
