@@ -96,7 +96,7 @@ function simplify(ex::Expr)
         return eval(current_module(), ex)
     end
     new_ex = simplify(SymbolParameter(ex.args[1]), ex.args[2:end])
-    while new_ex != ex
+    while !(isequal(new_ex, ex))
         new_ex, ex = simplify(new_ex), new_ex
     end
     return new_ex
