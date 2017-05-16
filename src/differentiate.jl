@@ -115,6 +115,7 @@ end
 symbolic_derivative_1arg_list = [
     ( :sqrt,        :(  1 / 2 / sqrt(x)                         ))
     ( :cbrt,        :(  1 / 3 / cbrt(x)^2                       ))
+    ( :abs,         :(  sign(x)                                 ))
     ( :abs2,        :(  1 * 2 * x                               ))
     ( :inv,         :( -1 * abs2(inv(x))                        ))
     ( :log,         :(  1 / x                                   ))
