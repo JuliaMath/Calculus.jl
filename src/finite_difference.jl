@@ -42,7 +42,7 @@ macro complexrule(x, e)
     end
 end
 
-function finite_difference{T <: Number}(f::Function,
+function finite_difference{T <: Number}(f,
                                         x::T,
                                         dtype::Symbol = :central)
     if dtype == :forward
@@ -97,7 +97,7 @@ end
 ##
 ##############################################################################
 
-function finite_difference!{S <: Number, T <: Number}(f::Function,
+function finite_difference!{S <: Number, T <: Number}(f,
                                                       x::Vector{S},
                                                       g::Vector{T},
                                                       dtype::Symbol)
@@ -135,7 +135,7 @@ function finite_difference!{S <: Number, T <: Number}(f::Function,
 
     return
 end
-function finite_difference{T <: Number}(f::Function,
+function finite_difference{T <: Number}(f,
                                         x::Vector{T},
                                         dtype::Symbol = :central)
     # Allocate memory for gradient
@@ -156,7 +156,7 @@ end
 
 function finite_difference_jacobian!{R <: Number,
                                      S <: Number,
-                                     T <: Number}(f::Function,
+                                     T <: Number}(f,
                                                   x::Vector{R},
                                                   f_x::Vector{S},
                                                   J::Array{T},
@@ -190,7 +190,7 @@ function finite_difference_jacobian!{R <: Number,
 
     return
 end
-function finite_difference_jacobian{T <: Number}(f::Function,
+function finite_difference_jacobian{T <: Number}(f,
                                                  x::Vector{T},
                                                  dtype::Symbol = :central)
     # Establish a baseline for f_x
@@ -212,13 +212,13 @@ end
 ##
 ##############################################################################
 
-function finite_difference_hessian{T <: Number}(f::Function,
+function finite_difference_hessian{T <: Number}(f,
                                                 x::T)
     @hessianrule x epsilon
     (f(x + epsilon) - 2*f(x) + f(x - epsilon))/epsilon^2
 end
-function finite_difference_hessian(f::Function,
-                                   g::Function,
+function finite_difference_hessian(f,
+                                   g,
                                    x::Number,
                                    dtype::Symbol = :central)
     finite_difference(g, x, dtype)
@@ -231,7 +231,7 @@ end
 ##############################################################################
 
 function finite_difference_hessian!{S <: Number,
-                                    T <: Number}(f::Function,
+                                    T <: Number}(f,
                                                  x::Vector{S},
                                                  H::Array{T})
     # What is the dimension of x?
@@ -263,7 +263,7 @@ function finite_difference_hessian!{S <: Number,
     end
     Base.LinAlg.copytri!(H,'U')
 end
-function finite_difference_hessian{T <: Number}(f::Function,
+function finite_difference_hessian{T <: Number}(f,
                                                 x::Vector{T})
     # What is the dimension of x?
     n = length(x)
@@ -277,8 +277,8 @@ function finite_difference_hessian{T <: Number}(f::Function,
     # Return the Hessian
     return H
 end
-function finite_difference_hessian{T <: Number}(f::Function,
-                                                g::Function,
+function finite_difference_hessian{T <: Number}(f,
+                                                g,
                                                 x::Vector{T},
                                                 dtype::Symbol = :central)
     finite_difference_jacobian(g, x, dtype)
@@ -294,7 +294,7 @@ end
 
 # Higher precise finite difference method based on Taylor series approximation.
 # h is the stepsize
-function taylor_finite_difference(f::Function,
+function taylor_finite_difference(f,
                                   x::Real,
                                   dtype::Symbol = :central,
                                   h::Real = 10e-4)
@@ -313,7 +313,7 @@ function taylor_finite_difference(f::Function,
     return d
 end
 
-function taylor_finite_difference_hessian(f::Function,
+function taylor_finite_difference_hessian(f,
                                           x::Real,
                                           h::Real)
     f_x = f(x)
@@ -330,15 +330,15 @@ end
 
 # The function "dirderivative" calculates directional derivatives in the direction v.
 # The function supplied must have the form Vector{Float64} -> Float64
-# function dirderivative(f::Function, v::Vector{Float64}, x0::Vector{Float64}, h::Float64, twoside::Bool)
+# function dirderivative(f, v::Vector{Float64}, x0::Vector{Float64}, h::Float64, twoside::Bool)
 #     derivative(t::Float64 -> f(x0 + v*t) / norm(v), 0.0, h, twoside)
 # end
-# function dirderivative(f::Function, v::Vector{Float64}, x0::Vector{Float64}, h::Float64)
+# function dirderivative(f, v::Vector{Float64}, x0::Vector{Float64}, h::Float64)
 #     dirderivative(f, v, x0, h, true)
 # end
-# function dirderivative(f::Function, v::Vector{Float64}, x0::Vector{Float64}, )
+# function dirderivative(f, v::Vector{Float64}, x0::Vector{Float64}, )
 #     derivative(f, v, x0, 0.0001)
 # end
-# function dirderivative(f::Function, v::Vector{Float64})
+# function dirderivative(f, v::Vector{Float64})
 #     x -> dirderivative(f, v, x)
 # end
