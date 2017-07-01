@@ -82,6 +82,9 @@ end
 # Simplify tests
 #
 
+@test isequal(simplify(:(x-0)), :x)
+@test isequal(simplify(:(0-x)), :(-x))
+
 @test isequal(simplify(:(x+y)), :(+(x,y)))
 @test isequal(simplify(:(x+3)), :(+(3,x)))
 @test isequal(simplify(:(x+3+4)), :(+(7,x)))
@@ -91,6 +94,8 @@ end
 @test isequal(simplify(:(x*3)), :(*(3,x)))
 @test isequal(simplify(:(x*3*4)), :(*(12,x)))
 @test isequal(simplify(:(2*y*x*3)), :(*(6,y,x)))
+
+@test isequal(simplify(:(sin((1*(sin(0/0)))))), NaN)
 
 #
 # Tests with ifelse

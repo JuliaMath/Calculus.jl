@@ -96,7 +96,7 @@ function simplify(ex::Expr)
         return eval(current_module(), ex)
     end
     new_ex = simplify(SymbolParameter(ex.args[1]), ex.args[2:end])
-    while new_ex != ex
+    while !(isequal(new_ex, ex))
         new_ex, ex = simplify(new_ex), new_ex
     end
     return new_ex
@@ -149,6 +149,14 @@ isminus(ex) = false
 
 # Assume length(args) == 3
 function simplify(::SymbolParameter{:-}, args)
+    # Special Case: simplify(:(0 - x)) == -x
+    if length(args) == 2 && args[1] == 0
+        return Expr(:call, :-, args[2])
+    # Special Case: simplify(:(x - 0)) == x
+    elseif length(args) == 2 && args[2] == 0
+        return args[1]
+    end
+
     # Remove any 0's in a subtraction
     args = map(simplify, filter(x -> x != 0, args))
     if length(args) == 0

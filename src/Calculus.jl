@@ -26,28 +26,28 @@ module Calculus
 
     # const NonDifferentiableFunction = Function
     # type DifferentiableFunction
-    #   f::Function
-    #   g::Function
+    #   f
+    #   g
     # end
     # type TwiceDifferentiableFunction
-    #   f::Function
-    #   g::Function
-    #   h::Function
+    #   f
+    #   g
+    #   h
     # end
     # type NonDifferentiableBundledFunction <: BundledFunction
-    #   f::Function
+    #   f
     #   fstorage::Any
     # end
     # type DifferentiableBundledFunction <: BundledFunction
-    #   f::Function
-    #   g::Function
+    #   f
+    #   g
     #   fstorage::Any
     #   gstorage::Any
     # end
     # type TwiceDifferentiableBundledFunction <: BundledFunction
-    #   f::Function
-    #   g::Function
-    #   h::Function
+    #   f
+    #   g
+    #   h
     #   fstorage::Any
     #   gstorage::Any
     #   hstorage::Any
