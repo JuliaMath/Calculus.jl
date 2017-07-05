@@ -98,15 +98,15 @@ end
 ##############################################################################
 
 function finite_difference!{S <: Number, T <: Number}(f,
-                                                      x::Vector{S},
-                                                      g::Vector{T},
+                                                      x::AbstractVector{S},
+                                                      g::AbstractVector{T},
                                                       dtype::Symbol)
     # What is the dimension of x?
     n = length(x)
 
     # Iterate over each dimension of the gradient separately.
-    # Use xplusdx to store x + dx instead of creating a new vector on each pass.
-    # Use xminusdx to store x - dx instead of creating a new vector on each pass.
+    # Use xplusdx to store x + dx instead of creating a new AbstractVector on each pass.
+    # Use xminusdx to store x - dx instead of creating a new AbstractVector on each pass.
     if dtype == :forward
         # Establish a baseline value of f(x).
         f_x = f(x)
@@ -136,10 +136,10 @@ function finite_difference!{S <: Number, T <: Number}(f,
     return
 end
 function finite_difference{T <: Number}(f,
-                                        x::Vector{T},
+                                        x::AbstractVector{T},
                                         dtype::Symbol = :central)
     # Allocate memory for gradient
-    g = Vector{Float64}(length(x))
+    g = AbstractVector{Float64}(length(x))
 
     # Mutate allocated gradient
     finite_difference!(f, float(x), g, dtype)
@@ -157,8 +157,8 @@ end
 function finite_difference_jacobian!{R <: Number,
                                      S <: Number,
                                      T <: Number}(f,
-                                                  x::Vector{R},
-                                                  f_x::Vector{S},
+                                                  x::AbstractVector{R},
+                                                  f_x::AbstractVector{S},
                                                   J::Array{T},
                                                   dtype::Symbol = :central)
     # What is the dimension of x?
@@ -191,7 +191,7 @@ function finite_difference_jacobian!{R <: Number,
     return
 end
 function finite_difference_jacobian{T <: Number}(f,
-                                                 x::Vector{T},
+                                                 x::AbstractVector{T},
                                                  dtype::Symbol = :central)
     # Establish a baseline for f_x
     f_x = f(x)
@@ -232,7 +232,7 @@ end
 
 function finite_difference_hessian!{S <: Number,
                                     T <: Number}(f,
-                                                 x::Vector{S},
+                                                 x::AbstractVector{S},
                                                  H::Array{T})
     # What is the dimension of x?
     n = length(x)
@@ -264,7 +264,7 @@ function finite_difference_hessian!{S <: Number,
     Base.LinAlg.copytri!(H,'U')
 end
 function finite_difference_hessian{T <: Number}(f,
-                                                x::Vector{T})
+                                                x::AbstractVector{T})
     # What is the dimension of x?
     n = length(x)
 
@@ -279,7 +279,7 @@ function finite_difference_hessian{T <: Number}(f,
 end
 function finite_difference_hessian{T <: Number}(f,
                                                 g,
-                                                x::Vector{T},
+                                                x::AbstractVector{T},
                                                 dtype::Symbol = :central)
     finite_difference_jacobian(g, x, dtype)
 end
@@ -329,16 +329,15 @@ end
 ##############################################################################
 
 # The function "dirderivative" calculates directional derivatives in the direction v.
-# The function supplied must have the form Vector{Float64} -> Float64
-# function dirderivative(f, v::Vector{Float64}, x0::Vector{Float64}, h::Float64, twoside::Bool)
+# function dirderivative(f, v::AbstractVector{Float64}, x0::AbstractVector{Float64}, h::Float64, twoside::Bool)
 #     derivative(t::Float64 -> f(x0 + v*t) / norm(v), 0.0, h, twoside)
 # end
-# function dirderivative(f, v::Vector{Float64}, x0::Vector{Float64}, h::Float64)
+# function dirderivative(f, v::AbstractVector{Float64}, x0::AbstractVector{Float64}, h::Float64)
 #     dirderivative(f, v, x0, h, true)
 # end
-# function dirderivative(f, v::Vector{Float64}, x0::Vector{Float64}, )
+# function dirderivative(f, v::AbstractVector{Float64}, x0::AbstractVector{Float64}, )
 #     derivative(f, v, x0, 0.0001)
 # end
-# function dirderivative(f, v::Vector{Float64})
+# function dirderivative(f, v::AbstractVector{Float64})
 #     x -> dirderivative(f, v, x)
 # end
