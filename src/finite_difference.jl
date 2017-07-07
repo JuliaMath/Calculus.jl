@@ -139,7 +139,7 @@ function finite_difference{T <: Number}(f,
                                         x::AbstractVector{T},
                                         dtype::Symbol = :central)
     # Allocate memory for gradient
-    g = AbstractVector{Float64}(length(x))
+    g = Vector{Float64}(length(x))
 
     # Mutate allocated gradient
     finite_difference!(f, float(x), g, dtype)
