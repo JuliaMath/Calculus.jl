@@ -112,7 +112,7 @@ derivative you calculate:
 ## Numerical Integration
 
 The Calculus package no longer provides routines for univariate numerical integration.
-Use the ``quadgk`` method from base Julia instead.
+Use [QuadGK.jl](https://github.com/JuliaMath/QuadGK.jl) instead.
 
 # Credits
 
