@@ -19,7 +19,7 @@ function differentiate(ex::Expr,wrt)
     simplify(differentiate(SymbolParameter(ex.args[1]), ex.args[2:end], wrt))
 end
 
-differentiate{T}(x::SymbolParameter{T}, args, wrt) = error("Derivative of function " * string(T) * " not supported")
+differentiate(x::SymbolParameter{T}, args, wrt) where {T} = error("Derivative of function " * string(T) * " not supported")
 
 # The Power Rule:
 function differentiate(::SymbolParameter{:^}, args, wrt)
@@ -203,7 +203,7 @@ export symbolic_derivatives_1arg
 
 # deprecated: for backward compatibility with packages that used
 # this unexported interface.
-derivative_rules = Vector{Compat.@compat(Tuple{Symbol,Expr})}(0)
+derivative_rules = Vector{Tuple{Symbol,Expr}}(0)
 for (s,ex) in symbolic_derivative_1arg_list
     push!(derivative_rules, (s, :(xp*$ex)))
 end
@@ -278,6 +278,6 @@ function differentiate(ex::Expr, targets::Vector{Symbol})
 end
 
 differentiate(ex::Expr) = differentiate(ex, :x)
-differentiate(s::Compat.AbstractString, target...) = differentiate(parse(s), target...)
-differentiate(s::Compat.AbstractString, target::Compat.AbstractString) = differentiate(parse(s), symbol(target))
-differentiate{T <: Compat.AbstractString}(s::Compat.AbstractString, targets::Vector{T}) = differentiate(parse(s), map(symbol, targets))
+differentiate(s::String, target...) = differentiate(parse(s), target...)
+differentiate(s::String, target::String) = differentiate(parse(s), Symbol(target))
+differentiate(s::String, targets::Vector{T}) where {T <: String} = differentiate(parse(s), map(Symbol, targets))

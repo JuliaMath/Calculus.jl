@@ -7,25 +7,15 @@ function derivative(f, ftype::Symbol, dtype::Symbol)
     error("ftype must :scalar or :vector")
   end
 end
-Compat.@compat derivative{T <: Number}(f, x::Union{T, Vector{T}}, dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
+derivative(f, x::Union{T, Vector{T}}, dtype::Symbol = :central) where {T <: Number} = finite_difference(f, float(x), dtype)
 derivative(f, dtype::Symbol = :central) = derivative(f, :scalar, dtype)
 
-Compat.@compat gradient{T <: Number}(f, x::Union{T, Vector{T}}, dtype::Symbol = :central) = finite_difference(f, float(x), dtype)
+gradient(f, x::Union{T, Vector{T}}, dtype::Symbol = :central) where {T <: Number} = finite_difference(f, float(x), dtype)
 gradient(f, dtype::Symbol = :central) = derivative(f, :vector, dtype)
-
-Compat.@compat function Base.gradient{T <: Number}(f, x::Union{T, Vector{T}}, dtype::Symbol = :central)
-    Base.warn_once("The finite difference methods from Calculus.jl no longer extend Base.gradient and should be called as Calculus.gradient instead. This usage is deprecated.")
-    Calculus.gradient(f,x,dtype)
-end
-
-function Base.gradient(f, dtype::Symbol = :central)
-    Base.warn_once("The finite difference methods from Calculus.jl no longer extend Base.gradient and should be called as Calculus.gradient instead. This usage is deprecated.")
-    Calculus.gradient(f,dtype)
-end
 
 ctranspose(f::Function) = derivative(f)
 
-function jacobian{T <: Number}(f, x::Vector{T}, dtype::Symbol)
+function jacobian(f, x::Vector{T}, dtype::Symbol) where {T <: Number}
     finite_difference_jacobian(f, x, dtype)
 end
 function jacobian(f, dtype::Symbol)
@@ -43,16 +33,16 @@ function second_derivative(f, g, ftype::Symbol, dtype::Symbol)
     error("ftype must :scalar or :vector")
   end
 end
-Compat.@compat function second_derivative{T <: Number}(f, g, x::Union{T, Vector{T}}, dtype::Symbol)
+function second_derivative(f, g, x::Union{T, Vector{T}}, dtype::Symbol) where {T <: Number}
   finite_difference_hessian(f, g, x, dtype)
 end
-Compat.@compat function hessian{T <: Number}(f, g, x::Union{T, Vector{T}}, dtype::Symbol)
+function hessian(f, g, x::Union{T, Vector{T}}, dtype::Symbol) where {T <: Number}
   finite_difference_hessian(f, g, x, dtype)
 end
-Compat.@compat function second_derivative{T <: Number}(f, g, x::Union{T, Vector{T}})
+function second_derivative(f, g, x::Union{T, Vector{T}}) where {T <: Number}
   finite_difference_hessian(f, g, x, :central)
 end
-Compat.@compat function hessian{T <: Number}(f, g, x::Union{T, Vector{T}})
+function hessian(f, g, x::Union{T, Vector{T}}) where {T <: Number}
   finite_difference_hessian(f, g, x, :central)
 end
 function second_derivative(f, x::Number, dtype::Symbol)
@@ -61,10 +51,10 @@ end
 function hessian(f, x::Number, dtype::Symbol)
   finite_difference_hessian(f, derivative(f), x, dtype)
 end
-function second_derivative{T <: Number}(f, x::Vector{T}, dtype::Symbol)
+function second_derivative(f, x::Vector{T}, dtype::Symbol) where {T <: Number}
   finite_difference_hessian(f, gradient(f), x, dtype)
 end
-function hessian{T <: Number}(f, x::Vector{T}, dtype::Symbol)
+function hessian(f, x::Vector{T}, dtype::Symbol) where {T <: Number}
   finite_difference_hessian(f, gradient(f), x, dtype)
 end
 function second_derivative(f, x::Number)
@@ -73,10 +63,10 @@ end
 function hessian(f, x::Number)
   finite_difference_hessian(f, derivative(f), x, :central)
 end
-function second_derivative{T <: Number}(f, x::Vector{T})
+function second_derivative(f, x::Vector{T}) where {T <: Number}
   finite_difference_hessian(f, gradient(f), x, :central)
 end
-function hessian{T <: Number}(f, x::Vector{T})
+function hessian(f, x::Vector{T}) where {T <: Number}
   finite_difference_hessian(f, gradient(f), x, :central)
 end
 second_derivative(f, g, dtype::Symbol) = second_derivative(f, g, :scalar, dtype)

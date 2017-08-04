@@ -1,7 +1,7 @@
 isdefined(Base, :__precompile__) && __precompile__()
 
 module Calculus
-    import Compat
+    using Compat
     import Base.ctranspose
     export check_derivative,
            check_gradient,
@@ -25,26 +25,26 @@ module Calculus
     # abstract type HessianEstimator end
 
     # const NonDifferentiableFunction = Function
-    # type DifferentiableFunction
+    # struct DifferentiableFunction
     #   f
     #   g
     # end
-    # type TwiceDifferentiableFunction
+    # struct TwiceDifferentiableFunction
     #   f
     #   g
     #   h
     # end
-    # type NonDifferentiableBundledFunction <: BundledFunction
+    # struct NonDifferentiableBundledFunction <: BundledFunction
     #   f
     #   fstorage::Any
     # end
-    # type DifferentiableBundledFunction <: BundledFunction
+    # struct DifferentiableBundledFunction <: BundledFunction
     #   f
     #   g
     #   fstorage::Any
     #   gstorage::Any
     # end
-    # type TwiceDifferentiableBundledFunction <: BundledFunction
+    # struct TwiceDifferentiableBundledFunction <: BundledFunction
     #   f
     #   g
     #   h
@@ -56,8 +56,6 @@ module Calculus
     include("finite_difference.jl")
     include("derivative.jl")
     include("check_derivative.jl")
-    @Base.deprecate integrate(f,a,b) quadgk(f,a,b)[1]
-    @Base.deprecate integrate(f,a,b,method) quadgk(f,a,b)[1]
     include("symbolic.jl")
     include("differentiate.jl")
     include("deparse.jl")
