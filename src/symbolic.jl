@@ -12,8 +12,8 @@ import Base.show, Base.(==)
 #
 #################################################################
 
-Compat.@compat abstract type Symbolic end
-Compat.@compat abstract type AbstractVariable <: Symbolic end
+abstract type Symbolic end
+abstract type AbstractVariable <: Symbolic end
 const SymbolicVariable = Union{Symbol, AbstractVariable}
 
 
@@ -23,7 +23,7 @@ const SymbolicVariable = Union{Symbol, AbstractVariable}
 #
 #################################################################
 
-type BasicVariable <: AbstractVariable
+mutable struct BasicVariable <: AbstractVariable
     sym::Symbol
 end
 # The following is probably too plain.
@@ -66,7 +66,7 @@ end
 #
 #################################################################
 
-type SymbolParameter{T}
+struct SymbolParameter{T}
 end
 SymbolParameter(s::Symbol) = SymbolParameter{s}()
 
@@ -86,14 +86,14 @@ simplify(n::Number) = n
 simplify(s::SymbolicVariable) = s
 
 # The default is just to simplify arguments.
-simplify{T}(x::SymbolParameter{T}, args) = Expr(:call, T, map(simplify, args)...)
+simplify(x::SymbolParameter{T}, args) where {T} = Expr(:call, T, map(simplify, args)...)
 
 function simplify(ex::Expr)
     if ex.head != :call
         return ex
     end
     if all(isnumber, ex.args[2:end]) && length(ex.args) > 1
-        return eval(current_module(), ex)
+        return eval(@__MODULE__, ex)
     end
     new_ex = simplify(SymbolParameter(ex.args[1]), ex.args[2:end])
     while !(isequal(new_ex, ex))
