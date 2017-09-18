@@ -23,7 +23,11 @@ function Base.gradient(f, dtype::Symbol = :central)
     Calculus.gradient(f,dtype)
 end
 
-ctranspose(f::Function) = derivative(f)
+if isdefined(Base, :adjoint)
+    Base.adjoint(f::Function) = derivative(f)
+else
+    Base.ctranspose(f::Function) = derivative(f)
+end
 
 function jacobian{T <: Number}(f, x::Vector{T}, dtype::Symbol)
     finite_difference_jacobian(f, x, dtype)

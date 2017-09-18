@@ -14,7 +14,7 @@ f2(x::Vector) = sin(x[1])
 @test norm(derivative(f2, :vector, :central)([0.0]) .- cos(0.0)) < 10e-4
 
 #
-# ctranspose overloading
+# adjoint overloading
 #
 
 f3(x::Real) = sin(x)
