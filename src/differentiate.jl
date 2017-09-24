@@ -8,14 +8,38 @@ export differentiate
 #
 #################################################################
 
-differentiate(ex::SymbolicVariable, wrt::SymbolicVariable) = (ex == wrt) ? 1 : 0
 
+macro makeDerivative(ex, wrt)
+    if haskey(storedFunctions, ex)
+        #in that case, ex is a function that was defined already
+        args = storedFunctions[ex].args
+        code = storedFunctions[ex].code
+        derivativeCode = differentiate(code, wrt)
+        res = eval(:($args -> $derivativeCode))
+        return res
+    else
+        derivativeCode = differentiate(ex, wrt)
+        res = eval(:($wrt -> $derivativeCode))
+        return res
+    end
+end
+
+function differentiate(ex::SymbolicVariable, wrt::SymbolicVariable)
+    if haskey(storedFunctions, ex)
+        return differentiate(storedFunctions[ex].code, wrt)
+    end
+    (ex == wrt) ? 1 : 0
+end
+    
 differentiate(ex::Number, wrt::SymbolicVariable) = 0
 
 function differentiate(ex::Expr,wrt)
+    #println("about to differentiate: ",ex," with respect to ", wrt)
     if ex.head != :call
         error("Unrecognized expression $ex")
     end
+    #println(SymbolParameter(ex.args[1]))
+    #println(ex.args[2:])
     simplify(differentiate(SymbolParameter(ex.args[1]), ex.args[2:end], wrt))
 end
 
