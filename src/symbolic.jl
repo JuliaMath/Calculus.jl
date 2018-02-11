@@ -23,7 +23,7 @@ const SymbolicVariable = Union{Symbol, AbstractVariable}
 #
 #################################################################
 
-type BasicVariable <: AbstractVariable
+mutable struct BasicVariable <: AbstractVariable
     sym::Symbol
 end
 # The following is probably too plain.
@@ -66,7 +66,7 @@ end
 #
 #################################################################
 
-type SymbolParameter{T}
+mutable struct SymbolParameter{T}
 end
 SymbolParameter(s::Symbol) = SymbolParameter{s}()
 
@@ -86,7 +86,7 @@ simplify(n::Number) = n
 simplify(s::SymbolicVariable) = s
 
 # The default is just to simplify arguments.
-simplify{T}(x::SymbolParameter{T}, args) = Expr(:call, T, map(simplify, args)...)
+simplify(x::SymbolParameter{T}, args) where {T} = Expr(:call, T, map(simplify, args)...)
 
 function simplify(ex::Expr)
     if ex.head != :call

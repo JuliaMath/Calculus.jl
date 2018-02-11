@@ -19,7 +19,7 @@ function differentiate(ex::Expr,wrt)
     simplify(differentiate(SymbolParameter(ex.args[1]), ex.args[2:end], wrt))
 end
 
-differentiate{T}(x::SymbolParameter{T}, args, wrt) = error("Derivative of function " * string(T) * " not supported")
+differentiate(x::SymbolParameter{T}, args, wrt) where {T} = error("Derivative of function " * string(T) * " not supported")
 
 # The Power Rule:
 function differentiate(::SymbolParameter{:^}, args, wrt)
@@ -184,13 +184,6 @@ symbolic_derivative_1arg_list = [
     ( :dawson,      :(  (1 - 2x * dawson(x))                    ))
 ]
 
-# `airy` and `airyprime` are deprecated in v0.6 (see JuliaLang/julia#18050)
-if VERSION < v"0.6.0-dev.1767"
-    push!(symbolic_derivative_1arg_list, (:airy, :(airyprime(x))))
-    push!(symbolic_derivative_1arg_list, (:airyprime, :(x * airy(x))))
-end
-
-
 # This is the public interface for accessing the list of symbolic
 # derivatives. The format is a list of (Symbol,Expr) tuples
 # (:f, deriv_expr), where deriv_expr is a symbolic
@@ -280,4 +273,4 @@ end
 differentiate(ex::Expr) = differentiate(ex, :x)
 differentiate(s::Compat.AbstractString, target...) = differentiate(parse(s), target...)
 differentiate(s::Compat.AbstractString, target::Compat.AbstractString) = differentiate(parse(s), symbol(target))
-differentiate{T <: Compat.AbstractString}(s::Compat.AbstractString, targets::Vector{T}) = differentiate(parse(s), map(symbol, targets))
+differentiate(s::Compat.AbstractString, targets::Vector{T}) where {T <: Compat.AbstractString} = differentiate(parse(s), map(symbol, targets))

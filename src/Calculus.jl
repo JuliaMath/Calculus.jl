@@ -1,5 +1,4 @@
-isdefined(Base, :__precompile__) && __precompile__()
-
+__precompile__()
 module Calculus
     import Compat
     export check_derivative,
