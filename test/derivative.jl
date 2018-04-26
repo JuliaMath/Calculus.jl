@@ -18,8 +18,8 @@ f2(x::Vector) = sin(x[1])
 #
 
 f3(x::Real) = sin(x)
-for x in linspace(0.0, 0.1, 11) # seq()
-	@test norm(f3'(x) - cos(x)) < 10e-4
+for x in Compat.range(0.0, stop=0.1, length=11) # seq()
+    @test norm(f3'(x) - cos(x)) < 10e-4
 end
 
 #
@@ -35,8 +35,8 @@ f4(x::Vector) = (100.0 - x[1])^2 + (50.0 - x[2])^2
 # jacobian()
 #
 
-@test norm(Calculus.jacobian(identity, rand(3), :forward) - eye(3)) < 10e-4
-@test norm(Calculus.jacobian(identity, rand(3), :central) - eye(3)) < 10e-4
+@test norm(Calculus.jacobian(identity, rand(3), :forward) - Matrix(1.0I, 3, 3)) < 10e-4
+@test norm(Calculus.jacobian(identity, rand(3), :central) - Matrix(1.0I, 3, 3)) < 10e-4
 
 #
 # second_derivative()

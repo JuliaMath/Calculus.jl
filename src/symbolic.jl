@@ -93,7 +93,7 @@ function simplify(ex::Expr)
         return ex
     end
     if all(isnumber, ex.args[2:end]) && length(ex.args) > 1
-        return eval(current_module(), ex)
+        return eval(@__MODULE__, ex)
     end
     new_ex = simplify(SymbolParameter(ex.args[1]), ex.args[2:end])
     while !(isequal(new_ex, ex))
