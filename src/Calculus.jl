@@ -1,6 +1,6 @@
 __precompile__()
 module Calculus
-    import Compat
+    using Compat
     export check_derivative,
            check_gradient,
            check_hessian,
@@ -54,8 +54,8 @@ module Calculus
     include("finite_difference.jl")
     include("derivative.jl")
     include("check_derivative.jl")
-    @Base.deprecate integrate(f,a,b) quadgk(f,a,b)[1]
-    @Base.deprecate integrate(f,a,b,method) quadgk(f,a,b)[1]
+    Base.@deprecate integrate(f,a,b) quadgk(f,a,b)[1]
+    Base.@deprecate integrate(f,a,b,method) quadgk(f,a,b)[1]
     include("symbolic.jl")
     include("differentiate.jl")
     include("deparse.jl")
