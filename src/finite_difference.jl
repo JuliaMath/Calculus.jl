@@ -139,7 +139,7 @@ function finite_difference(f,
                            x::AbstractVector{T},
                            dtype::Symbol = :central) where T <: Number
     # Allocate memory for gradient
-    g = Vector{Float64}(length(x))
+    g = Vector{Float64}(undef, length(x))
 
     # Mutate allocated gradient
     finite_difference!(f, float(x), g, dtype)
@@ -261,7 +261,7 @@ function finite_difference_hessian!(f,
         end
         xpp[i], xpm[i], xmp[i], xmm[i] = xi, xi, xi, xi
     end
-    Base.LinAlg.copytri!(H,'U')
+    Compat.LinearAlgebra.copytri!(H,'U')
 end
 function finite_difference_hessian(f,
                                    x::AbstractVector{T}) where T <: Number
@@ -269,7 +269,7 @@ function finite_difference_hessian(f,
     n = length(x)
 
     # Allocate an empty Hessian
-    H = Matrix{Float64}(n, n)
+    H = Matrix{Float64}(undef, n, n)
 
     # Mutate the allocated Hessian
     finite_difference_hessian!(f, x, H)

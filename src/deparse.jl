@@ -1,4 +1,4 @@
-const op_precedence = Compat.@compat Dict(:+ => 1, :- => 1, :* => 2, :/ => 2, :^ => 3)
+const op_precedence = Dict(:+ => 1, :- => 1, :* => 2, :/ => 2, :^ => 3)
 
 function deparse(ex::Expr, outer_precedence=0)
     if ex.head != :call

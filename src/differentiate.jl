@@ -79,9 +79,9 @@ end
 # d/dx (f * g * h) = (d/dx f) * g * h + f * (d/dx g) * h + ...
 function differentiate(::SymbolParameter{:*}, args, wrt)
     n = length(args)
-    res_args = Vector{Any}(n)
+    res_args = Vector{Any}(undef, n)
     for i in 1:n
-       new_args = Vector{Any}(n)
+       new_args = Vector{Any}(undef, n)
        for j in 1:n
            if j == i
                new_args[j] = differentiate(args[j], wrt)
@@ -196,7 +196,7 @@ export symbolic_derivatives_1arg
 
 # deprecated: for backward compatibility with packages that used
 # this unexported interface.
-derivative_rules = Vector{Compat.@compat(Tuple{Symbol,Expr})}(0)
+derivative_rules = Vector{Tuple{Symbol,Expr}}()
 for (s,ex) in symbolic_derivative_1arg_list
     push!(derivative_rules, (s, :(xp*$ex)))
 end
@@ -263,7 +263,7 @@ end
 
 function differentiate(ex::Expr, targets::Vector{Symbol})
     n = length(targets)
-    exprs = Vector{Any}(n)
+    exprs = Vector{Any}(undef, n)
     for i in 1:n
         exprs[i] = differentiate(ex, targets[i])
     end
@@ -271,6 +271,8 @@ function differentiate(ex::Expr, targets::Vector{Symbol})
 end
 
 differentiate(ex::Expr) = differentiate(ex, :x)
-differentiate(s::Compat.AbstractString, target...) = differentiate(parse(s), target...)
-differentiate(s::Compat.AbstractString, target::Compat.AbstractString) = differentiate(parse(s), symbol(target))
-differentiate(s::Compat.AbstractString, targets::Vector{T}) where {T <: Compat.AbstractString} = differentiate(parse(s), map(symbol, targets))
+differentiate(s::AbstractString, target...) = differentiate(Compat.Meta.parse(s), target...)
+differentiate(s::AbstractString, target::AbstractString) =
+    differentiate(Compat.Meta.parse(s), Symbol(target))
+differentiate(s::AbstractString, targets::Vector{T}) where {T <: AbstractString} =
+    differentiate(Compat.Meta.parse(s), map(Symbol, targets))

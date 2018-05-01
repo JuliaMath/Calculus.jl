@@ -3,7 +3,9 @@
 #
 
 using Calculus
-using Base.Test
+using Compat
+using Compat.Test
+using Compat.LinearAlgebra
 
 tests = ["finite_difference",
          "derivative",
