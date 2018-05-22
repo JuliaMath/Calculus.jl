@@ -16,7 +16,8 @@ function differentiate(ex::Expr,wrt)
     if ex.head != :call
         error("Unrecognized expression $ex")
     end
-    simplify(differentiate(SymbolParameter(ex.args[1]), ex.args[2:end], wrt))
+    # TODO: When simplify no longer calls eval, simplify the result.
+    differentiate(SymbolParameter(ex.args[1]), ex.args[2:end], wrt)
 end
 
 differentiate(x::SymbolParameter{T}, args, wrt) where {T} = error("Derivative of function " * string(T) * " not supported")
