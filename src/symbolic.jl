@@ -93,7 +93,7 @@ function simplify(ex::Expr)
         return ex
     end
     if all(isnumber, ex.args[2:end]) && length(ex.args) > 1
-        return eval(@__MODULE__, ex)
+        return (@static (VERSION < v"0.7.0-DEV.5149") ? eval : Core.eval)(@__MODULE__, ex)
     end
     new_ex = simplify(SymbolParameter(ex.args[1]), ex.args[2:end])
     while !(isequal(new_ex, ex))
