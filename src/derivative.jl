@@ -35,7 +35,7 @@ else
     Base.ctranspose(f::Function) = derivative(f)
 end
 
-function jacobian(f, x::Vector{T}, dtype::Symbol) where T <: Number
+function jacobian(f, x::AbstractVector{T}, dtype::Symbol) where T <: Number
     finite_difference_jacobian(f, x, dtype)
 end
 function jacobian(f, dtype::Symbol)
