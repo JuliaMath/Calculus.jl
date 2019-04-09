@@ -2,7 +2,7 @@ function derivative(f, ftype::Symbol, dtype::Symbol)
   if ftype == :scalar
     return x::Number -> finite_difference(f, float(x), dtype)
   elseif ftype == :vector
-    return x::Vector -> finite_difference(f, float(x), dtype)
+    return x::AbstractVector -> finite_difference(f, float(x), dtype)
   else
     error("ftype must :scalar or :vector")
   end
@@ -39,7 +39,7 @@ function jacobian(f, x::AbstractVector{T}, dtype::Symbol) where T <: Number
     finite_difference_jacobian(f, x, dtype)
 end
 function jacobian(f, dtype::Symbol)
-    g(x::Vector) = finite_difference_jacobian(f, x, dtype)
+    g(x::AbstractVector) = finite_difference_jacobian(f, x, dtype)
     return g
 end
 jacobian(f) = jacobian(f, :central)
@@ -48,21 +48,21 @@ function second_derivative(f, g, ftype::Symbol, dtype::Symbol)
   if ftype == :scalar
     return x::Number -> finite_difference_hessian(f, g, x, dtype)
   elseif ftype == :vector
-    return x::Vector -> finite_difference_hessian(f, g, x, dtype)
+    return x::AbstractVector -> finite_difference_hessian(f, g, x, dtype)
   else
     error("ftype must :scalar or :vector")
   end
 end
-function second_derivative(f, g, x::Union{T, Vector{T}}, dtype::Symbol) where T <: Number
+function second_derivative(f, g, x::Union{T, AbstractVector{T}}, dtype::Symbol) where T <: Number
   finite_difference_hessian(f, g, x, dtype)
 end
-function hessian(f, g, x::Union{T, Vector{T}}, dtype::Symbol) where T <: Number
+function hessian(f, g, x::Union{T, AbstractVector{T}}, dtype::Symbol) where T <: Number
   finite_difference_hessian(f, g, x, dtype)
 end
-function second_derivative(f, g, x::Union{T, Vector{T}}) where T <: Number
+function second_derivative(f, g, x::Union{T, AbstractVector{T}}) where T <: Number
   finite_difference_hessian(f, g, x, :central)
 end
-function hessian(f, g, x::Union{T, Vector{T}}) where T <: Number
+function hessian(f, g, x::Union{T, AbstractVector{T}}) where T <: Number
   finite_difference_hessian(f, g, x, :central)
 end
 function second_derivative(f, x::Number, dtype::Symbol)
@@ -71,10 +71,10 @@ end
 function hessian(f, x::Number, dtype::Symbol)
   finite_difference_hessian(f, derivative(f), x, dtype)
 end
-function second_derivative(f, x::Vector{T}, dtype::Symbol) where T <: Number
+function second_derivative(f, x::AbstractVector{T}, dtype::Symbol) where T <: Number
   finite_difference_hessian(f, gradient(f), x, dtype)
 end
-function hessian(f, x::Vector{T}, dtype::Symbol) where T <: Number
+function hessian(f, x::AbstractVector{T}, dtype::Symbol) where T <: Number
   finite_difference_hessian(f, gradient(f), x, dtype)
 end
 function second_derivative(f, x::Number)
@@ -83,10 +83,10 @@ end
 function hessian(f, x::Number)
   finite_difference_hessian(f, derivative(f), x, :central)
 end
-function second_derivative(f, x::Vector{T}) where T <: Number
+function second_derivative(f, x::AbstractVector{T}) where T <: Number
   finite_difference_hessian(f, gradient(f), x, :central)
 end
-function hessian(f, x::Vector{T}) where T <: Number
+function hessian(f, x::AbstractVector{T}) where T <: Number
   finite_difference_hessian(f, gradient(f), x, :central)
 end
 second_derivative(f, g, dtype::Symbol) = second_derivative(f, g, :scalar, dtype)
