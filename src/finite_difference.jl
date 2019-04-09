@@ -17,21 +17,21 @@
 macro forwardrule(x, e)
     x, e = esc(x), esc(e)
     quote
-        $e = sqrt(eps(eltype($x))) * max(one(eltype($x)), abs($x))
+        $e = sqrt(eps($x^2))
     end
 end
 
 macro centralrule(x, e)
     x, e = esc(x), esc(e)
     quote
-        $e = cbrt(eps(eltype($x))) * max(one(eltype($x)), abs($x))
+        $e = cbrt(eps($x^3))
     end
 end
 
 macro hessianrule(x, e)
     x, e = esc(x), esc(e)
     quote
-        $e = eps(eltype($x))^(1/4) * max(one(eltype($x)), abs($x))
+        $e = eps($x^4)^(1/4)
     end
 end
 
