@@ -231,38 +231,31 @@ end
 ##############################################################################
 
 function finite_difference_hessian!(f,
-                                    x::AbstractVector{S},
-                                    H::Array{T}) where {S <: Number,
+                                    H::Array{T},
+                                    x::AbstractVector{S}) where {S <: Number,
                                                         T <: Number}
-    # What is the dimension of x?
-    n = length(x)
-
-    epsilon = NaN
-    # TODO: Remove all these copies
-    xpp, xpm, xmp, xmm = copy(x), copy(x), copy(x), copy(x)
-    fx = f(x)
-    for i = 1:n
-        xi = x[i]
-        @hessianrule x[i] epsilon
-        xpp[i], xmm[i] = xi + epsilon, xi - epsilon
-        H[i, i] = (f(xpp) - 2*fx + f(xmm)) / epsilon^2
-        @centralrule x[i] epsiloni
-        xp = xi + epsiloni
-        xm = xi - epsiloni
-        xpp[i], xpm[i], xmp[i], xmm[i] = xp, xp, xm, xm
-        for j = i+1:n
-            xj = x[j]
-            @centralrule x[j] epsilonj
-            xp = xj + epsilonj
-            xm = xj - epsilonj
-            xpp[j], xpm[j], xmp[j], xmm[j] = xp, xm, xp, xm
-            H[i, j] = (f(xpp) - f(xpm) - f(xmp) + f(xmm))/(4*epsiloni*epsilonj)
-            xpp[j], xpm[j], xmp[j], xmm[j] = xj, xj, xj, xj
+    n = size(H)[1]
+    e(j) = [i == j for i in 1:n]      # j-th basis vector
+    hⱼ, hₖ = NaN, NaN
+    f₀ = f(x)
+    for j = 1:n 
+        @hessianrule x[j] hⱼ # According to Numerical Recipes 5.7
+        f₊  = f(x + hⱼ * e(j))
+        f₋  = f(x - hⱼ * e(j))
+        H[j,j] = (f₋ - 2f₀ + f₊) / hⱼ^2
+        for k = j+1:n # Off-diagonal terms
+            @hessianrule x[k] hₖ # According to Numerical Recipes 5.7
+            f₊₊ = f(x + hⱼ * e(j) + hₖ * e(k))
+            f₊₋ = f(x + hⱼ * e(j) - hₖ * e(k))
+            f₋₊ = f(x - hⱼ * e(j) + hₖ * e(k))
+            f₋₋ = f(x - hⱼ * e(j) - hₖ * e(k))
+            H[j,k] = (f₊₊ - f₋₊ - f₊₋ + f₋₋) / (4 * hⱼ * hₖ)
+            j ≠ k ? H[k,j] = H[j,k] : nothing
         end
-        xpp[i], xpm[i], xmp[i], xmm[i] = xi, xi, xi, xi
     end
-    Compat.LinearAlgebra.copytri!(H,'U')
+    return H
 end
+
 function finite_difference_hessian(f,
                                    x::AbstractVector{T}) where T <: Number
     # What is the dimension of x?
@@ -272,7 +265,7 @@ function finite_difference_hessian(f,
     H = Matrix{Float64}(undef, n, n)
 
     # Mutate the allocated Hessian
-    finite_difference_hessian!(f, x, H)
+    finite_difference_hessian!(f, H, x)
 
     # Return the Hessian
     return H
