@@ -15,7 +15,8 @@ tests = ["finite_difference",
 
 println("Running tests:")
 
-for t in tests
-    println(" * $(t)")
-    include("$(t).jl")
+@testset "$t" for t in tests
+    include("$t.jl")
 end
+
+println("Tests finished.")
