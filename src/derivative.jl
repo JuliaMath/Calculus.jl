@@ -29,12 +29,6 @@ function Compat.LinearAlgebra.gradient(f, dtype::Symbol = :central)
 end
 end
 
-if isdefined(Base, :adjoint)
-    Base.adjoint(f::Function) = derivative(f)
-else
-    Base.ctranspose(f::Function) = derivative(f)
-end
-
 function jacobian(f, x::Vector{T}, dtype::Symbol) where T <: Number
     finite_difference_jacobian(f, x, dtype)
 end
