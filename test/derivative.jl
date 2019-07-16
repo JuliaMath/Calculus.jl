@@ -19,7 +19,7 @@ f2(x::Vector) = sin(x[1])
 
 f3(x::Real) = sin(x)
 for x in Compat.range(0.0, stop=0.1, length=11) # seq()
-    @test norm(f3'(x) - cos(x)) < 10e-4
+    @test norm(derivative(f3,x) - cos(x)) < 10e-4
 end
 
 #
