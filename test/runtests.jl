@@ -3,9 +3,8 @@
 #
 
 using Calculus
-using Compat
-using Compat.Test
-using Compat.LinearAlgebra
+using Test
+using LinearAlgebra
 
 tests = ["finite_difference",
          "derivative",
@@ -13,9 +12,8 @@ tests = ["finite_difference",
          "symbolic",
          "deparse"]
 
-println("Running tests:")
-
 for t in tests
-    println(" * $(t)")
-    include("$(t).jl")
+    @testset "$t" begin
+        include("$(t).jl")
+    end
 end

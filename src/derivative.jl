@@ -13,22 +13,6 @@ derivative(f, dtype::Symbol = :central) = derivative(f, :scalar, dtype)
 gradient(f, x::Union{T, Vector{T}}, dtype::Symbol = :central) where {T <: Number} = finite_difference(f, float(x), dtype)
 gradient(f, dtype::Symbol = :central) = derivative(f, :vector, dtype)
 
-@static if isdefined(Compat.LinearAlgebra, :gradient)
-function Compat.LinearAlgebra.gradient(f, x::Union{T, Vector{T}}, dtype::Symbol = :central) where T <: Number
-    Base.depwarn("The finite difference methods from Calculus.jl no longer extend " *
-                 "Base.gradient and should be called as Calculus.gradient instead. " *
-                 "This usage is deprecated.", :gradient)
-    Calculus.gradient(f,x,dtype)
-end
-
-function Compat.LinearAlgebra.gradient(f, dtype::Symbol = :central)
-    Base.depwarn("The finite difference methods from Calculus.jl no longer extend " *
-                 "Base.gradient and should be called as Calculus.gradient instead. " *
-                 "This usage is deprecated.", :gradient)
-    Calculus.gradient(f,dtype)
-end
-end
-
 function jacobian(f, x::Vector{T}, dtype::Symbol) where T <: Number
     finite_difference_jacobian(f, x, dtype)
 end

@@ -272,7 +272,7 @@ function differentiate(ex::Expr, targets::Vector{Symbol})
 end
 
 differentiate(ex::Expr) = differentiate(ex, :x)
-differentiate(s::AbstractString, target...) = differentiate(Compat.Meta.parse(s), target...)
+differentiate(s::AbstractString, target...) = differentiate(Meta.parse(s), target...)
 differentiate(s::AbstractString, target::AbstractString) =
     differentiate(Compat.Meta.parse(s), Symbol(target))
 differentiate(s::AbstractString, targets::Vector{T}) where {T <: AbstractString} =
