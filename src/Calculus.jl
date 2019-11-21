@@ -1,5 +1,5 @@
 module Calculus
-    using Compat
+    using LinearAlgebra
     export check_derivative,
            check_gradient,
            check_hessian,

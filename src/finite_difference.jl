@@ -261,7 +261,7 @@ function finite_difference_hessian!(f,
         end
         xpp[i], xpm[i], xmp[i], xmm[i] = xi, xi, xi, xi
     end
-    Compat.LinearAlgebra.copytri!(H,'U')
+    LinearAlgebra.copytri!(H,'U')
 end
 function finite_difference_hessian(f,
                                    x::AbstractVector{T}) where T <: Number
