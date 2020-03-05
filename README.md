@@ -93,7 +93,7 @@ There are a few basic approaches to using the Calculus package:
 ## Prime Notation
 
 For scalar functions that map R to R, you can use the `'` operator to calculate
-derivatives as well. This operator can be used abritratily many times, but you
+derivatives as well (no longer works in any stable version of Julia, see this [issue](https://github.com/JuliaMath/Calculus.jl/issues/143). This operator can be used abritratily many times, but you
 should keep in mind that the approximation degrades with each approximate
 derivative you calculate:
 
