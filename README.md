@@ -1,10 +1,7 @@
 Calculus.jl
 ===========
 
-[![Build Status](https://travis-ci.org/JuliaMath/Calculus.jl.svg?branch=master)](https://travis-ci.org/JuliaMath/Calculus.jl)
 [![Coverage Status](https://coveralls.io/repos/github/JuliaMath/Calculus.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaMath/Calculus.jl?branch=master)
-[![Calculus](http://pkg.julialang.org/badges/Calculus_0.6.svg)](http://pkg.julialang.org/detail/Calculus)
-[![Calculus](http://pkg.julialang.org/badges/Calculus_0.7.svg)](http://pkg.julialang.org/detail/Calculus)
 
 # Introduction
 
