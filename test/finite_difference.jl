@@ -9,6 +9,7 @@
 @test norm(Calculus.finite_difference(x -> sin(x), 1.0, :forward) - cos(1.0)) < 10e-4
 @test norm(Calculus.finite_difference(x -> sin(x), 1.0, :central) - cos(1.0)) < 10e-4
 @test norm(Calculus.finite_difference(x -> sin(x), 1.0) - cos(1.0)) < 10e-4
+@test norm(Calculus.finite_difference(x -> sin(x), pi) + 1) < 10e-4
 
 @test norm(Calculus.finite_difference(x -> exp(-x), 1.0, :forward) - (-exp(-1.0))) < 10e-4
 @test norm(Calculus.finite_difference(x -> exp(-x), 1.0, :central) - (-exp(-1.0))) < 10e-4
@@ -21,6 +22,7 @@
 @test norm(Calculus.finite_difference(x -> x[1]^2, [1.0], :forward) - [2.0]) < 10e-4
 @test norm(Calculus.finite_difference(x -> x[1]^2, [1.0], :central) - [2.0]) < 10e-4
 @test norm(Calculus.finite_difference(x -> x[1]^2, [1.0]) - [2.0]) < 10e-4
+@test norm(Calculus.finite_difference(x -> x[1]^2, [float(pi)]) - [2*pi]) < 10e-4
 
 @test norm(Calculus.finite_difference(x -> sin(x[1]), [1.0], :forward) - [cos(1.0)]) < 10e-4
 @test norm(Calculus.finite_difference(x -> sin(x[1]), [1.0], :central) - [cos(1.0)]) < 10e-4
