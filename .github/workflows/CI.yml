@@ -28,10 +28,14 @@ jobs:
           - '1'
         os:
           - ubuntu-latest
-          - macOS-latest
+          - macOS-13
           - windows-latest
         arch:
           - x64
+        include:
+          - os: macOS-latest
+            arch: aarch64
+            version: 1
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
