@@ -3,6 +3,9 @@ Calculus.jl
 
 [![Coverage Status](https://coveralls.io/repos/github/JuliaMath/Calculus.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaMath/Calculus.jl?branch=master)
 
+Note: This package is currently unmaintained and these capabilities are available in various other Julia packages.
+If you would like to help maintain this package (since it is a good teaching tool), please chime in on [#153](https://github.com/JuliaMath/Calculus.jl/issues/153).
+
 # Introduction
 
 The Calculus package provides tools for working with the basic calculus
