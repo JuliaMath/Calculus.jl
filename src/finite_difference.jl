@@ -45,6 +45,10 @@ end
 function finite_difference(f,
                            x::T,
                            dtype::Symbol = :central) where T <: Number
+    # handle irrationals
+    if T <: Irrational
+        x = float(x)
+    end
     if dtype == :forward
         @forwardrule x epsilon
         xplusdx = x + epsilon
@@ -101,6 +105,10 @@ function finite_difference!(f,
                             x::AbstractVector{S},
                             g::AbstractVector{T},
                             dtype::Symbol) where {S <: Number, T <: Number}
+    # handle irrationals
+    if S <: Irrational
+        x = float.(x)
+    end
     # What is the dimension of x?
     n = length(x)
 
@@ -161,6 +169,10 @@ function finite_difference_jacobian!(f,
                                      dtype::Symbol = :central) where {R <: Number,
                                                                     S <: Number,
                                                                     T <: Number}
+    # handle irrationals
+    if R <: Irrational
+        x = float.(x)
+    end
     # What is the dimension of x?
     m, n = size(J)
 
@@ -214,6 +226,10 @@ end
 
 function finite_difference_hessian(f,
                                    x::T) where T <: Number
+    # handle irrationals
+    if typeof(x) <: Irrational
+        x = float(x)
+    end
     @hessianrule x epsilon
     (f(x + epsilon) - 2*f(x) + f(x - epsilon))/epsilon^2
 end
@@ -234,6 +250,10 @@ function finite_difference_hessian!(f,
                                     x::AbstractVector{S},
                                     H::Array{T}) where {S <: Number,
                                                         T <: Number}
+    # handle irrationals
+    if S <: Irrational
+        x = float.(x)
+    end
     # What is the dimension of x?
     n = length(x)
 
