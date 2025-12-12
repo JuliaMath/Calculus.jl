@@ -38,7 +38,7 @@ end
 macro complexrule(x, e)
     x, e = esc(x), esc(e)
     quote
-        $e = eps($x)
+        $e = eps($x + 1e-200)
     end
 end
 
@@ -129,8 +129,17 @@ function finite_difference!(f,
             x[i] = oldx
             g[i] = (f_xplusdx - f_xminusdx) / (epsilon + epsilon)
         end
+    elseif dtype == :complex
+        xcomplex = x + 0.*im
+        for i = 1:n
+            @complexrule x[i] epsilon
+            oldxi = xcomplex[i]
+            xcomplex[i] = oldxi + epsilon * im
+            g[i] = imag(f(xcomplex)) / epsilon
+            xcomplex[i] = oldxi
+        end	
     else
-        error("dtype must be :forward or :central")
+        error("dtype must be :forward, :central or :complex")
     end
 
     return
